@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SiliconStudio.Paradox.DataModel;
 
 namespace ParadoxCraft
 {
@@ -45,9 +46,15 @@ namespace ParadoxCraft
             if (isWireframe)
                 GraphicsDevice.Parameters.Set(Effect.RasterizerStateKey, RasterizerState.New(GraphicsDevice, new RasterizerStateDescription(CullMode.None) { FillMode = FillMode.Wireframe }));
 
+            // Lights
+            Entities.Add(CreateDirectLight(new Vector3(-1, 1, 1), new Color3(1, 1, 1), 0.25f));
+            Entities.Add(CreateDirectLight(new Vector3(1, -1, -1), new Color3(1, 1, 1), 0.25f));
+
+            // Entities
             LoadTerrain();
             LoadCamera();
 
+            // Scripts
             Script.Add(MovementScript);
         }
 
@@ -123,6 +130,34 @@ namespace ParadoxCraft
                     PlayerMovement.YawPitch(dragX, dragY);
                 }
             }
+        } 
+        #endregion
+
+        #region Lights
+        private static Entity CreateDirectLight(Vector3 direction, Color3 color, float intensity)
+        {
+            return new Entity()
+            {
+                new LightComponent
+                {
+                    Type = LightType.Directional,
+                    Color = color,
+                    Deferred = false,
+                    Enabled = true,
+                    Intensity = intensity,
+                    LightDirection = direction,
+                    Layers = RenderLayers.RenderLayerAll,
+                    ShadowMap = false,
+                    ShadowFarDistance = 3000,
+                    ShadowNearDistance = 10,
+                    ShadowMapMaxSize = 1024,
+                    ShadowMapMinSize = 512,
+                    ShadowMapCascadeCount = 4,
+                    ShadowMapFilterType = ShadowMapFilterType.Variance,
+                    BleedingFactor = 0,
+                    MinVariance = 0
+                }
+            };
         } 
         #endregion
     }

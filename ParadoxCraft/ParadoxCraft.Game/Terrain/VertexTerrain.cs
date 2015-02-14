@@ -17,7 +17,8 @@ namespace ParadoxCraft.Terrain
         /// <param name="normal">The vertex normal.</param>
         /// <param name="textureCoordinate">UV texture coordinates.</param>
         /// <param name="material">Material byte.</param>
-        public VertexTerrain(Vector3 position, Vector3 normal, Vector2 textureCoordinate, uint material = 0) : this()
+        public VertexTerrain(Vector3 position, Half4 normal, Half2 textureCoordinate, uint material = 0)
+            : this()
         {
             Position = position;
             Normal = normal;
@@ -33,19 +34,19 @@ namespace ParadoxCraft.Terrain
         /// <summary>
         /// The vertex normal.
         /// </summary>
-        public Vector3 Normal;
+        public Half4 Normal;
 
         /// <summary>
         /// UV texture coordinates.
         /// </summary>
-        public Vector2 TextureCoordinate;
+        public Half2 TextureCoordinate;
 
         public uint Material;
         
         /// <summary>
         /// Defines structure byte size.
         /// </summary>
-        public static readonly int Size = 33;
+        public static readonly int Size = 28;
 
 
         /// <summary>
@@ -53,8 +54,8 @@ namespace ParadoxCraft.Terrain
         /// </summary>
         public static readonly VertexDeclaration Layout = new VertexDeclaration(
             VertexElement.Position<Vector3>(),
-            VertexElement.Normal<Vector3>(),
-            VertexElement.TextureCoordinate<Vector2>(),
+            VertexElement.Normal<Half4>(),
+            VertexElement.TextureCoordinate<Half2>(),
             new VertexElement("MATERIAL0", PixelFormat.R32_UInt)
             );
 
@@ -89,7 +90,7 @@ namespace ParadoxCraft.Terrain
 
         public void FlipWinding()
         {
-            TextureCoordinate.X = (1.0f - TextureCoordinate.X);
+            TextureCoordinate.X = (Half)(1 - TextureCoordinate.X);
         }
 
         public static bool operator ==(VertexTerrain left, VertexTerrain right)

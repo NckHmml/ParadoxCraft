@@ -10,7 +10,7 @@
     stage Texture2D MeshTexture0;
     stage Texture2D MeshTexture1;
 
-    stage stream float2 TexCoord : TEXCOORD0;
+    stage stream half2 TexCoord : TEXCOORD0;
     stage stream uint Material : MATERIAL0;
 
     override float4 Compute()
