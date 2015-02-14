@@ -1,0 +1,29 @@
+﻿class VertexTextureTerrain : ComputeColor, ColorBase, TransformationBase, PositionStream4
+{
+    SamplerState MeshTextureSampler
+	{
+		Filter = MIN_MAG_MIP_LINEAR;
+		AddressU = Wrap;
+		AddressV = Wrap;
+	};
+
+    stage Texture2D MeshTexture0;
+    stage Texture2D MeshTexture1;
+
+    stage stream float2 TexCoord : TEXCOORD0;
+    stage stream uint Material : MATERIAL0;
+
+    override float4 Compute()
+    {
+        switch(streams.Material) 
+        {
+            case 0: // Stone
+                return MeshTexture0.Sample(MeshTextureSampler, streams.TexCoord);
+                break;
+            case 1: // Coal
+                return MeshTexture1.Sample(MeshTextureSampler, streams.TexCoord);
+                break;
+        }
+        return 0;
+    }
+};

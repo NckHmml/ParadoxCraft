@@ -1,0 +1,21 @@
+!EffectLibrary
+Id: 46134610-ad9d-4f52-bf5f-6771f90ffab4
+BuildOrder: 1000
+Tags: []
+Permutations:
+    Keys: {}
+    Children:
+        -   Keys:
+                Effect.Name: ParadoxCraftEffectMain
+                MaterialAsset.UseParameters: true
+                Mesh.UseParameters: true
+                ShadowMapParameters.FilterType:
+                    - !ShadowMapFilterType Nearest
+                    - !ShadowMapFilterType Variance
+            Children: []
+        -   Keys:
+                Effect.Name: HorizontalVsmBlur
+            Children: []
+        -   Keys:
+                Effect.Name: VerticalVsmBlur
+            Children: []

@@ -1,0 +1,29 @@
+!MaterialAsset
+Id: 525598ad-e7f7-4dc5-a50b-ddc16389f75d
+BuildOrder: 250
+Tags: []
+Material:
+    Nodes:
+        MeshTexture0: !MaterialTextureNode
+            TextureReference: 300c0d8a-dd8c-4b52-8dd8-69332cbf731e:Textures/stone
+            Scale: {X: 1, Y: 1}
+            Offset: {X: 0, Y: 0}
+        MeshTexture1: !MaterialTextureNode
+            TextureReference: 144a0123-f7a1-4832-b633-386e2075d4dc:Textures/coal_ore
+            Scale: {X: 1, Y: 1}
+            Offset: {X: 0, Y: 0}
+        diffuse: !MaterialShaderClassNode
+            MixinReference: 33c2d66c-214a-2013-8f1d-1f86a9dda8f9:VertexTextureTerrain
+            Generics: {}
+            CompositionNodes: {}
+            Members:
+                VertexTextureTerrain.MeshTexture0: !NodeParameterTexture
+                    Reference: MeshTexture0
+                VertexTextureTerrain.MeshTexture1: !NodeParameterTexture
+                    Reference: MeshTexture1
+            IsReducible: false
+    ColorNodes:
+        MaterialParameters.AlbedoDiffuse: diffuse
+    Parameters:
+        Capacity: 0
+        ~Items: {}

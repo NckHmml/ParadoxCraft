@@ -1,0 +1,126 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <MinimumVisualStudioVersion>10.0</MinimumVisualStudioVersion>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{10242CD2-7C03-4132-A199-EAE16A0D71DC}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>ParadoxCraft</RootNamespace>
+    <AssemblyName>ParadoxCraft.Game</AssemblyName>
+    <DefaultLanguage>en-US</DefaultLanguage>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <TargetFrameworkProfile>Profile111</TargetFrameworkProfile>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SiliconStudioCurrentPackagePath>$(MSBuildThisFileDirectory)..\ParadoxCraft.pdxpkg</SiliconStudioCurrentPackagePath>
+    <SiliconStudioPackageProps>$([System.IO.Path]::ChangeExtension('$(SiliconStudioCurrentPackagePath)', '.props'))</SiliconStudioPackageProps>
+    <SiliconStudioProjectType>Library</SiliconStudioProjectType>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineConstants>DEBUG;TRACE;SILICONSTUDIO_PLATFORM_WINDOWS;SILICONSTUDIO_PLATFORM_WINDOWS_DESKTOP</DefineConstants>
+    <SiliconStudioPlatform>Windows</SiliconStudioPlatform>
+    <SiliconStudioParadoxGraphicsApi>Direct3D11</SiliconStudioParadoxGraphicsApi>
+    <SiliconStudioBuildProfile>Windows</SiliconStudioBuildProfile>
+    <OutputPath>..\Bin\Windows-Direct3D11\Debug\</OutputPath>
+    <IntermediateOutputPath>obj\Windows\Debug\</IntermediateOutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineConstants>TRACE;SILICONSTUDIO_PLATFORM_WINDOWS;SILICONSTUDIO_PLATFORM_WINDOWS_DESKTOP</DefineConstants>
+    <SiliconStudioPlatform>Windows</SiliconStudioPlatform>
+    <SiliconStudioParadoxGraphicsApi>Direct3D11</SiliconStudioParadoxGraphicsApi>
+    <SiliconStudioBuildProfile>Windows</SiliconStudioBuildProfile>
+    <OutputPath>..\Bin\Windows-Direct3D11\Release\</OutputPath>
+    <IntermediateOutputPath>obj\Windows\Release\</IntermediateOutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Testing|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineConstants>TRACE;SILICONSTUDIO_PLATFORM_WINDOWS;SILICONSTUDIO_PLATFORM_WINDOWS_DESKTOP</DefineConstants>
+    <SiliconStudioPlatform>Windows</SiliconStudioPlatform>
+    <SiliconStudioParadoxGraphicsApi>Direct3D11</SiliconStudioParadoxGraphicsApi>
+    <SiliconStudioBuildProfile>Windows</SiliconStudioBuildProfile>
+    <OutputPath>..\Bin\Windows-Direct3D11\Testing\</OutputPath>
+    <IntermediateOutputPath>obj\Windows\Testing\</IntermediateOutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'AppStore|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineConstants>TRACE;SILICONSTUDIO_PLATFORM_WINDOWS;SILICONSTUDIO_PLATFORM_WINDOWS_DESKTOP</DefineConstants>
+    <SiliconStudioPlatform>Windows</SiliconStudioPlatform>
+    <SiliconStudioParadoxGraphicsApi>Direct3D11</SiliconStudioParadoxGraphicsApi>
+    <SiliconStudioBuildProfile>Windows</SiliconStudioBuildProfile>
+    <OutputPath>..\Bin\Windows-Direct3D11\AppStore\</OutputPath>
+    <IntermediateOutputPath>obj\Windows\AppStore\</IntermediateOutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- A reference to the entire .NET Framework is automatically included -->
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Block\BlockSides.cs" />
+    <Compile Include="Block\GraphicalBlock.cs" />
+    <Compile Include="Constants.cs" />
+    <Compile Include="Effects\ParadoxCraftEffectMain.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>ParadoxCraftEffectMain.pdxfx</DependentUpon>
+    </Compile>
+    <Compile Include="Effects\VertexTextureTerrain.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>VertexTextureTerrain.pdxsl</DependentUpon>
+    </Compile>
+    <Compile Include="Movement.cs" />
+    <Compile Include="Terrain\GraphicalTerrain.cs" />
+    <Compile Include="Terrain\VertexTerrain.cs" />
+    <None Include="Effects\Permutations.pdxfxlib" />
+    <None Include="Effects\ParadoxCraftEffectMain.pdxfx">
+      <Generator>ParadoxShaderKeyGenerator</Generator>
+      <LastGenOutput>ParadoxCraftEffectMain.cs</LastGenOutput>
+    </None>
+    <Compile Include="ParadoxCraftGame.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <None Include="Effects\VertexTextureTerrain.pdxsl">
+      <Generator>ParadoxShaderKeyGenerator</Generator>
+      <LastGenOutput>VertexTextureTerrain.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
+  <Import Project="$(SiliconStudioPackageProps)" Condition="Exists('$(SiliconStudioPackageProps)')" />
+  <Import Project="$(SiliconStudioParadoxDir)\Targets\SiliconStudio.Common.targets" Condition="Exists('$(SiliconStudioParadoxDir)\Targets\SiliconStudio.Common.targets')" />
+  <Target Name="EnsureSiliconStudioParadoxInstalled" BeforeTargets="PrepareForBuild">
+    <Error Condition="'$(SiliconStudioParadoxDir)' == ''" Text="Paradox SDK was not found. Check Paradox is installed and the global env variable [SiliconStudioParadoxDir] is setup correctly" />
+    <Error Condition="!Exists('$(SiliconStudioParadoxDir)\Targets\SiliconStudio.Common.targets')" Text="Invalid Paradox SDK installation. Target file [$(SiliconStudioParadoxDir)\Targets\SiliconStudio.Common.targets] was not found." />
+  </Target>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+    Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

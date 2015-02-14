@@ -1,0 +1,46 @@
+!Package
+Id: 181f95b9-a79e-4592-8e1b-d8ae18a1ffa4
+Tags: []
+Meta:
+    Name: ParadoxCraft
+    Version: 1.0.0.0
+    Authors: []
+    Owners: []
+    RootNamespace: ParadoxCraft
+    Dependencies:
+        -   Name: Paradox
+            Version: 1.0.0-beta10
+LocalDependencies: []
+Profiles:
+    -   Name: Shared
+        Platform: Shared
+        InheritProfiles: []
+        AssetFolders:
+            -   Path: Assets/Shared
+                RawImports: []
+            -   Path: ParadoxCraft.Game/Effects
+                RawImports: []
+        OutputGroupDirectories: {}
+        Properties:
+            Paradox.DisplayOrientation: !DisplayOrientation LandscapeRight
+        ProjectReferences:
+            -   Id: 10242cd2-7c03-4132-a199-eae16a0d71dc
+                Location: ParadoxCraft.Game/ParadoxCraft.Game.csproj
+                Type: Library
+    -   Name: Windows
+        Platform: Windows
+        InheritProfiles: []
+        AssetFolders:
+            -   Path: Assets/Windows
+                RawImports: []
+        OutputGroupDirectories: {}
+        Properties:
+            Paradox.GraphicsPlatform: !GraphicsPlatform Direct3D11
+            Paradox.GraphicsProfile: !GraphicsProfile Level_11_0
+        ProjectReferences:
+            -   Id: 48012ec3-759e-45a5-a624-21860447e898
+                Location: ParadoxCraft.Windows/ParadoxCraft.Windows.csproj
+                Type: Executable
+ExplicitFolders: []
+Bundles: []
+TemplateFolders: []

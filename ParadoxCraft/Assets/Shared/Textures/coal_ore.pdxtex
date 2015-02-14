@@ -1,0 +1,15 @@
+!Texture
+Id: 144a0123-f7a1-4832-b633-386e2075d4dc
+Tags: []
+Source: ../../../RawAssets/coal_ore.png
+ImporterId: a60986f3-a594-4278-bd9d-68ea172f0558
+ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
+Format: AsIs
+GenerateMipmaps: false
+PremultiplyAlpha: false
+~Base:
+    Location: --import--
+    Asset: !Texture
+        Id: 00000000-0000-0000-0000-000000000000
+        Tags: []
+        ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

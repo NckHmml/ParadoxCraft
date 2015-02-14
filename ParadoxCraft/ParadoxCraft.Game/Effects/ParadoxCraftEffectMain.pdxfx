@@ -1,0 +1,9 @@
+﻿using SiliconStudio.Paradox.Effects.Data;
+
+namespace ParadoxCraft.Effects
+{
+	shader ParadoxCraftEffectMain
+	{
+        mixin ParadoxDefaultForwardShader;
+	};
+}
