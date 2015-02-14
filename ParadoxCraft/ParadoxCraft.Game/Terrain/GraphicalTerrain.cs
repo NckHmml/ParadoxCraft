@@ -13,8 +13,14 @@ using Buffer = SiliconStudio.Paradox.Graphics.Buffer;
 
 namespace ParadoxCraft.Terrain
 {
+    /// <summary>
+    /// Terrain entity helper
+    /// </summary>
     public class GraphicalTerrain
     {
+        /// <summary>
+        /// Max number of blocks the entity can support
+        /// </summary>
         public const int MaxBlockCount = 1;
 
         /// <summary>
@@ -42,6 +48,11 @@ namespace ParadoxCraft.Terrain
         /// </summary>
         public List<GraphicalBlock> Blocks { get; private set; }
 
+        /// <summary>
+        /// Creates a new instance of <see cref="GraphicalTerrain"/>
+        /// </summary>
+        /// <param name="device">GraphicsDevice of the current game to draw on</param>
+        /// <param name="material">Terrain material</param>
         public GraphicalTerrain(GraphicsDevice device, Material material)
         {
             // Initilize variables
@@ -69,6 +80,9 @@ namespace ParadoxCraft.Terrain
             TerrainEntity.Add(ModelComponent.Key, new ModelComponent { Model = model });
         }
 
+        /// <summary>
+        /// Creates the indices and vertices
+        /// </summary>
         public void Build()
         {
             GenerateVertices();
@@ -76,6 +90,10 @@ namespace ParadoxCraft.Terrain
             TerrainEntity.Get<ModelComponent>(ModelComponent.Key).Model.Meshes[0].Draw.DrawCount = drawcount;
         }
 
+        /// <summary>
+        /// Creates the indices
+        /// </summary>
+        /// <returns>Amount of indices to draw</returns>
         private unsafe int GenerateIndices()
         {
             MappedResource indexMap = GraphicsDevice.MapSubresource(TerrainIndexBuffer, 0, MapMode.WriteDiscard);
@@ -106,6 +124,9 @@ namespace ParadoxCraft.Terrain
             return index;
         }
 
+        /// <summary>
+        /// Creates the vertices
+        /// </summary>
         private unsafe void GenerateVertices()
         {
             MappedResource vertexMap = GraphicsDevice.MapSubresource(TerrainVertexBuffer, 0, MapMode.WriteDiscard);
@@ -246,7 +267,9 @@ namespace ParadoxCraft.Terrain
             GraphicsDevice.UnmapSubresource(vertexMap);
         }
 
-
+        /// <summary>
+        /// Cast operator so we can add this instance 'as entity' to the pipeline
+        /// </summary>
         public static implicit operator Entity(GraphicalTerrain terrain)
         {
             return terrain.TerrainEntity;

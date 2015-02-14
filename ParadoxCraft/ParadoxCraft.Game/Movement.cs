@@ -12,13 +12,7 @@ namespace ParadoxCraft
     public class Movement
     {
         private Entity Camera { get; set; }
-        private CameraComponent Component
-        {
-            get
-            {
-                return Camera.Get<CameraComponent>();
-            }
-        }
+
         private float Speed { get; set; }
         private float YawAngle { get; set; }
         private float PitchAngle { get; set; }
@@ -36,6 +30,10 @@ namespace ParadoxCraft
             }
         }
 
+        /// <summary>
+        /// Create a new instance of <see cref="Movement"/>
+        /// </summary>
+        /// <param name="camera">Camera to use</param>
         public Movement(Entity camera)
         {
             Camera = camera;
@@ -47,11 +45,19 @@ namespace ParadoxCraft
             Z = camera.Transformation.Translation.Z;
         }
 
+        /// <summary>
+        /// Add a direction to the next movement step
+        /// </summary>
+        /// <param name="direction">Direction to move in</param>
         public void Add(Direction direction)
         {
             MoveDirection |= direction;
         }
 
+        /// <summary>
+        /// Calculates and moves the camera using the saved movement directions
+        /// </summary>
+        /// <param name="multi">Multiplier</param>
         public void Move(double multi)
         {
             if (MoveDirection == 0) return;
@@ -118,16 +124,31 @@ namespace ParadoxCraft
             SetPosition();
         }
 
+        /// <summary>
+        /// Calculates the sinus
+        /// </summary>
+        /// <param name="angle">Angle to calculate</param>
+        /// <param name="multi">Multiplier</param>
         private double Sin(float angle, double multi)
         {
             return Speed * multi * Math.Sin(angle);
         }
 
+        /// <summary>
+        /// Calculates the cosinus
+        /// </summary>
+        /// <param name="angle">Angle to calculate</param>
+        /// <param name="multi">Multiplier</param>
         private double Cos(float angle, double multi)
         {
             return Speed * multi * Math.Cos(angle);
         }
 
+        /// <summary>
+        /// Yaw and Pitch movement for the camera
+        /// </summary>
+        /// <param name="yaw">Amount to yaw</param>
+        /// <param name="pitch">Amount to pitch</param>
         public void YawPitch(float yaw, float pitch)
         {
             YawAngle += yaw * 5f;
@@ -142,6 +163,10 @@ namespace ParadoxCraft
             Camera.Transformation.Rotation = Quaternion.RotationYawPitchRoll(YawAngle, PitchAngle, 0);
         }
 
+        /// <summary>
+        /// Checks if <paramref name="position"/> is in a 130% range of the farplane
+        /// </summary>
+        /// <param name="position">Position to check</param>
         public bool isInField(Vector3 position)
         {
             var farplane = Camera.Get<CameraComponent>().FarPlane;
@@ -152,6 +177,10 @@ namespace ParadoxCraft
             return distance <= farplane * 1.3f;
         }
 
+        /// <summary>
+        /// Checks if <paramref name="position"/> is in front of the current position
+        /// </summary>
+        /// <param name="position">Position to check</param>
         public bool isAhead(Vector3 position)
         {
             var curPos = Camera.Transformation.Translation;
@@ -171,6 +200,9 @@ namespace ParadoxCraft
         }
     }
 
+    /// <summary>
+    /// All possible movement directions
+    /// </summary>
     [Flags]
     public enum Direction
     {

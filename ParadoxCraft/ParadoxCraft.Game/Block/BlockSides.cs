@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace ParadoxCraft.Block
 {
+    /// <summary>
+    /// All posible sides a block could have
+    /// </summary>
     [Flags]
     public enum BlockSides : byte
     {

@@ -18,23 +18,46 @@ using SiliconStudio.Paradox.DataModel;
 
 namespace ParadoxCraft
 {
+    /// <summary>
+    /// Main game instance
+    /// </summary>
     public class ParadoxCraftGame : Game
     {
+        #region Variables
+        /// <summary>
+        /// Bool to switch wireframe mode
+        /// </summary>
         private bool isWireframe = false;
 
+        /// <summary>
+        /// Player camera entity
+        /// </summary>
         private Entity Camera { get; set; }
 
+        /// <summary>
+        /// Terrain entity
+        /// </summary>
         private GraphicalTerrain Terrain { get; set; }
 
-        private Movement PlayerMovement { get; set; }
-
+        /// <summary>
+        /// Player movement helper
+        /// </summary>
+        private Movement PlayerMovement { get; set; } 
+        #endregion
 
         #region Initialization
+        /// <summary>
+        /// Creates a new instance of <see cref="ParadoxCraftGame"/>
+        /// </summary>
         public ParadoxCraftGame()
         {
             // Target 11.0 profile by default
             GraphicsDeviceManager.PreferredGraphicsProfile = new[] { GraphicsProfile.Level_11_0 };
         }
+
+        /// <summary>
+        /// Loads the game content
+        /// </summary>
         protected override async Task LoadContent()
         {
             await base.LoadContent();
@@ -58,6 +81,9 @@ namespace ParadoxCraft
             Script.Add(MovementScript);
         }
 
+        /// <summary>
+        /// Creates the entity for the player camera
+        /// </summary>
         private void LoadCamera()
         {
             // Initialize player (camera)
@@ -74,6 +100,9 @@ namespace ParadoxCraft
             Entities.Add(Camera);
         }
 
+        /// <summary>
+        /// Creates the entity for the terrain
+        /// </summary>
         private void LoadTerrain()
         {
             Terrain = new GraphicalTerrain(GraphicsDevice, Asset.Load<Material>("Materials/Terrain"));
@@ -134,6 +163,13 @@ namespace ParadoxCraft
         #endregion
 
         #region Lights
+        /// <summary>
+        /// Creates a light entity based on the forward lightning example
+        /// </summary>
+        /// <param name="direction">Light direction</param>
+        /// <param name="color">Light color</param>
+        /// <param name="intensity">Light intensity</param>
+        /// <returns>The light entity</returns>
         private static Entity CreateDirectLight(Vector3 direction, Color3 color, float intensity)
         {
             return new Entity()

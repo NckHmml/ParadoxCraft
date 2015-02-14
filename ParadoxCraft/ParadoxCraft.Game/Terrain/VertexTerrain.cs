@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace ParadoxCraft.Terrain
 {
+    /// <summary>
+    /// Vertex structure to be used for the terrain entity
+    /// </summary>
     public struct VertexTerrain : IEquatable<VertexTerrain>, IVertex
     {
         /// <summary>
@@ -16,7 +19,7 @@ namespace ParadoxCraft.Terrain
         /// <param name="position">The position of this vertex.</param>
         /// <param name="normal">The vertex normal.</param>
         /// <param name="textureCoordinate">UV texture coordinates.</param>
-        /// <param name="material">Material byte.</param>
+        /// <param name="material">Material ID.</param>
         public VertexTerrain(Vector3 position, Half4 normal, Half2 textureCoordinate, uint material = 0)
             : this()
         {
@@ -41,6 +44,9 @@ namespace ParadoxCraft.Terrain
         /// </summary>
         public Half2 TextureCoordinate;
 
+        /// <summary>
+        /// Material ID
+        /// </summary>
         public uint Material;
         
         /// <summary>
