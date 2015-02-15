@@ -1,4 +1,4 @@
-﻿using ParadoxCraft.Block;
+﻿using ParadoxCraft.Blocks;
 using SiliconStudio.Core.Mathematics;
 using SiliconStudio.Paradox.Effects;
 using SiliconStudio.Paradox.Engine;
@@ -21,7 +21,7 @@ namespace ParadoxCraft.Terrain
         /// <summary>
         /// Max number of blocks the entity can support
         /// </summary>
-        public const int MaxBlockCount = 1;
+        public const int MaxBlockCount = 1000 * 16;
 
         /// <summary>
         /// Vertex buffer
@@ -46,7 +46,9 @@ namespace ParadoxCraft.Terrain
         /// <summary>
         /// List of blocks to be drawn
         /// </summary>
-        public List<GraphicalBlock> Blocks { get; private set; }
+        private List<GraphicalBlock> Blocks { get; set; }
+
+        private object BlockLocker = new object();
 
         /// <summary>
         /// Creates a new instance of <see cref="GraphicalTerrain"/>
@@ -81,13 +83,29 @@ namespace ParadoxCraft.Terrain
         }
 
         /// <summary>
+        /// Adds a block to be drawn
+        /// </summary>
+        /// <remarks>
+        /// Threadsafe
+        /// </remarks>
+        /// <param name="toAdd">Block to add</param>
+        public void AddBlock(GraphicalBlock toAdd)
+        {
+            lock (BlockLocker)
+                Blocks.Add(toAdd);
+        }
+
+        /// <summary>
         /// Creates the indices and vertices
         /// </summary>
         public void Build()
         {
-            GenerateVertices();
-            int drawcount = GenerateIndices();
-            TerrainEntity.Get<ModelComponent>(ModelComponent.Key).Model.Meshes[0].Draw.DrawCount = drawcount;
+            lock (BlockLocker)
+            {
+                GenerateVertices();
+                int drawcount = GenerateIndices();
+                TerrainEntity.Get<ModelComponent>(ModelComponent.Key).Model.Meshes[0].Draw.DrawCount = drawcount;
+            }
         }
 
         /// <summary>
@@ -136,10 +154,10 @@ namespace ParadoxCraft.Terrain
 
             // Texture UV coordinates
             Half2
-                textureTopLeft = new Half2(1, 0),
+                textureTopLeft = new Half2(0, 1),
                 textureTopRight = new Half2(1, 1),
                 textureBtmLeft = new Half2(0, 0),
-                textureBtmRight = new Half2(0, 1);
+                textureBtmRight = new Half2(1, 0);
 
             // Size vector and corner positions
             Vector3 
@@ -166,10 +184,10 @@ namespace ParadoxCraft.Terrain
                     Half4
                         normal = new Half4((Half)0, (Half)1, (Half)0, (Half)0);
 
-                    vertexBuffer[i++] = new VertexTerrain(cornerTopLeft, normal, textureTopLeft, 0);
-                    vertexBuffer[i++] = new VertexTerrain(cornerBtmLeft, normal, textureBtmLeft, 0);
-                    vertexBuffer[i++] = new VertexTerrain(cornerBtmRight, normal, textureBtmRight, 0);
-                    vertexBuffer[i++] = new VertexTerrain(cornerTopRight, normal, textureTopRight, 0);
+                    vertexBuffer[i++] = new VertexTerrain(cornerTopRight, normal, textureBtmLeft, 0);
+                    vertexBuffer[i++] = new VertexTerrain(cornerTopLeft, normal, textureBtmRight, 0);
+                    vertexBuffer[i++] = new VertexTerrain(cornerBtmLeft, normal, textureTopRight, 0);
+                    vertexBuffer[i++] = new VertexTerrain(cornerBtmRight, normal, textureTopLeft, 0);
                 }
                 #endregion
 
@@ -184,10 +202,10 @@ namespace ParadoxCraft.Terrain
                     Half4
                         normal = new Half4((Half)0, (Half)(-1), (Half)0, (Half)0);
 
-                    vertexBuffer[i++] = new VertexTerrain(cornerTopLeft, normal, textureTopLeft, 1);
-                    vertexBuffer[i++] = new VertexTerrain(cornerTopRight, normal, textureBtmLeft, 1);
-                    vertexBuffer[i++] = new VertexTerrain(cornerBtmRight, normal, textureBtmRight, 1);
-                    vertexBuffer[i++] = new VertexTerrain(cornerBtmLeft, normal, textureTopRight, 1);
+                    vertexBuffer[i++] = new VertexTerrain(cornerBtmLeft, normal, textureBtmLeft, 0);
+                    vertexBuffer[i++] = new VertexTerrain(cornerTopLeft, normal, textureTopLeft, 0);
+                    vertexBuffer[i++] = new VertexTerrain(cornerTopRight, normal, textureTopRight, 0);
+                    vertexBuffer[i++] = new VertexTerrain(cornerBtmRight, normal, textureBtmRight, 0);
                 }
                 #endregion
 
@@ -202,10 +220,10 @@ namespace ParadoxCraft.Terrain
                     Half4
                         normal = new Half4((Half)0, (Half)0, (Half)1, (Half)0);
 
-                    vertexBuffer[i++] = new VertexTerrain(cornerBtmRight, normal, textureBtmRight);
-                    vertexBuffer[i++] = new VertexTerrain(cornerTopRight, normal, textureBtmLeft);
-                    vertexBuffer[i++] = new VertexTerrain(cornerTopLeft, normal, textureTopLeft);
-                    vertexBuffer[i++] = new VertexTerrain(cornerBtmLeft, normal, textureTopRight);
+                    vertexBuffer[i++] = new VertexTerrain(cornerTopRight, normal, textureBtmLeft, 0);
+                    vertexBuffer[i++] = new VertexTerrain(cornerTopLeft, normal, textureBtmRight, 0);
+                    vertexBuffer[i++] = new VertexTerrain(cornerBtmLeft, normal, textureTopRight, 0);
+                    vertexBuffer[i++] = new VertexTerrain(cornerBtmRight, normal, textureTopLeft, 0);
                 } 
                 #endregion
 
@@ -220,10 +238,10 @@ namespace ParadoxCraft.Terrain
                     Half4
                         normal = new Half4((Half)0, (Half)0, (Half)(-1), (Half)0);
 
-                    vertexBuffer[i++] = new VertexTerrain(cornerTopLeft, normal, textureTopLeft);
-                    vertexBuffer[i++] = new VertexTerrain(cornerTopRight, normal, textureBtmLeft);
-                    vertexBuffer[i++] = new VertexTerrain(cornerBtmRight, normal, textureBtmRight);
-                    vertexBuffer[i++] = new VertexTerrain(cornerBtmLeft, normal, textureTopRight);
+                    vertexBuffer[i++] = new VertexTerrain(cornerBtmLeft, normal, textureBtmLeft, 0);
+                    vertexBuffer[i++] = new VertexTerrain(cornerTopLeft, normal, textureTopLeft, 0);
+                    vertexBuffer[i++] = new VertexTerrain(cornerTopRight, normal, textureTopRight, 0);
+                    vertexBuffer[i++] = new VertexTerrain(cornerBtmRight, normal, textureBtmRight, 0);
                 }
                 #endregion
 
@@ -231,17 +249,17 @@ namespace ParadoxCraft.Terrain
                 if (block.HasSide(BlockSides.Left))
                 {
                     Vector3
-                        cornerTopLeft = block.Position + corner3,
-                        cornerBtmLeft = block.Position + corner7,
-                        cornerTopRight = block.Position + corner4,
-                        cornerBtmRight = block.Position + corner8;
+                        cornerTopLeft = block.Position + corner1,
+                        cornerBtmLeft = block.Position + corner5,
+                        cornerTopRight = block.Position + corner2,
+                        cornerBtmRight = block.Position + corner6;
                     Half4
                         normal = new Half4((Half)1, (Half)0, (Half)0, (Half)0);
 
-                    vertexBuffer[i++] = new VertexTerrain(cornerTopLeft, normal, textureTopLeft);
-                    vertexBuffer[i++] = new VertexTerrain(cornerTopRight, normal, textureBtmLeft);
-                    vertexBuffer[i++] = new VertexTerrain(cornerBtmRight, normal, textureBtmRight);
-                    vertexBuffer[i++] = new VertexTerrain(cornerBtmLeft, normal, textureTopRight);
+                    vertexBuffer[i++] = new VertexTerrain(cornerTopRight, normal, textureBtmLeft, 0);
+                    vertexBuffer[i++] = new VertexTerrain(cornerTopLeft, normal, textureBtmRight, 0);
+                    vertexBuffer[i++] = new VertexTerrain(cornerBtmLeft, normal, textureTopRight, 0);
+                    vertexBuffer[i++] = new VertexTerrain(cornerBtmRight, normal, textureTopLeft, 0);
                 }
                 #endregion
 
@@ -249,17 +267,17 @@ namespace ParadoxCraft.Terrain
                 if (block.HasSide(BlockSides.Right))
                 {
                     Vector3
-                        cornerTopLeft = block.Position + corner1,
-                        cornerBtmLeft = block.Position + corner5,
-                        cornerTopRight = block.Position + corner2,
-                        cornerBtmRight = block.Position + corner6;
+                        cornerTopLeft = block.Position + corner3,
+                        cornerBtmLeft = block.Position + corner7,
+                        cornerTopRight = block.Position + corner4,
+                        cornerBtmRight = block.Position + corner8;
                     Half4
                         normal = new Half4((Half)(-1), (Half)0, (Half)0, (Half)0);
 
-                    vertexBuffer[i++] = new VertexTerrain(cornerBtmRight, normal, textureBtmRight);
-                    vertexBuffer[i++] = new VertexTerrain(cornerTopRight, normal, textureBtmLeft);
-                    vertexBuffer[i++] = new VertexTerrain(cornerTopLeft, normal, textureTopLeft);
-                    vertexBuffer[i++] = new VertexTerrain(cornerBtmLeft, normal, textureTopRight);
+                    vertexBuffer[i++] = new VertexTerrain(cornerBtmLeft, normal, textureBtmLeft, 0);
+                    vertexBuffer[i++] = new VertexTerrain(cornerTopLeft, normal, textureTopLeft, 0);
+                    vertexBuffer[i++] = new VertexTerrain(cornerTopRight, normal, textureTopRight, 0);
+                    vertexBuffer[i++] = new VertexTerrain(cornerBtmRight, normal, textureBtmRight, 0);
                 }
                 #endregion
             }

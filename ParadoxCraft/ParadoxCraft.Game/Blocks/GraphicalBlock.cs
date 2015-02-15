@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ParadoxCraft.Block
+namespace ParadoxCraft.Blocks
 {
     /// <summary>
     /// A block that contains all information to be drawn

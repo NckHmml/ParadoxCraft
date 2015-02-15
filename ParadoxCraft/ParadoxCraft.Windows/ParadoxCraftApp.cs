@@ -1,14 +1,19 @@
+using ParadoxCraft.Generation;
 
 namespace ParadoxCraft
 {
-    class ParadoxCraftApp
+    public class ParadoxCraftApp
     {
-        static void Main(string[] args)
+        private static ParadoxCraftGame Game;
+
+        private static void Main(string[] args)
         {
-            // Profiler.EnableAll();
-            using (var game = new ParadoxCraftGame())
+            ChunkLoader.Initialize();
+            using (Game = new ParadoxCraftGame())
             {
-                game.Run();
+                Game.Factory.RequestChunk += ChunkLoader.RequestChunk;
+                ChunkLoader.ProcessChunk += Game.Factory.ProcessChunk;
+                Game.Run();
             }
         }
     }

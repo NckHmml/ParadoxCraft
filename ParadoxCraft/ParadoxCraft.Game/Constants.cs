@@ -11,6 +11,11 @@ namespace ParadoxCraft
         /// <summary>
         /// 90 degrees radial
         /// </summary>
-        public const float degrees90 = (float)Math.PI / 2;
+        public const float Degrees90 = (float)Math.PI / 2;
+
+        /// <summary>
+        /// Default size of a chunk
+        /// </summary>
+        public const int ChunkSize = 32;
     }
 }

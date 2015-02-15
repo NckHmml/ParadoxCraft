@@ -1,5 +1,5 @@
 using ParadoxCraft.Terrain;
-using ParadoxCraft.Block;
+using ParadoxCraft.Blocks;
 
 using SiliconStudio.Core.Mathematics;
 using SiliconStudio.Paradox;
@@ -15,6 +15,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SiliconStudio.Paradox.DataModel;
+using ParadoxCraft.Blocks.Chunks;
 
 namespace ParadoxCraft
 {
@@ -42,7 +43,12 @@ namespace ParadoxCraft
         /// <summary>
         /// Player movement helper
         /// </summary>
-        private Movement PlayerMovement { get; set; } 
+        private Movement PlayerMovement { get; set; }
+
+        /// <summary>
+        /// Chunk handling factory
+        /// </summary>
+        public ChunkFactory Factory { get; private set; }
         #endregion
 
         #region Initialization
@@ -53,6 +59,8 @@ namespace ParadoxCraft
         {
             // Target 11.0 profile by default
             GraphicsDeviceManager.PreferredGraphicsProfile = new[] { GraphicsProfile.Level_11_0 };
+
+            Factory = new ChunkFactory();
         }
 
         /// <summary>
@@ -79,6 +87,7 @@ namespace ParadoxCraft
 
             // Scripts
             Script.Add(MovementScript);
+            Script.Add(RenderChunksScript);
         }
 
         /// <summary>
@@ -106,8 +115,8 @@ namespace ParadoxCraft
         private void LoadTerrain()
         {
             Terrain = new GraphicalTerrain(GraphicsDevice, Asset.Load<Material>("Materials/Terrain"));
-            Terrain.Blocks.Add(new GraphicalBlock(Vector3.Zero, BlockSides.All));
             Terrain.Build();
+            Factory.Terrain = Terrain;
             Entities.Add(Terrain);
         } 
         #endregion
@@ -159,7 +168,43 @@ namespace ParadoxCraft
                     PlayerMovement.YawPitch(dragX, dragY);
                 }
             }
-        } 
+        }
+
+        /// <summary>
+        /// Script for checking chunks that should be rendered
+        /// </summary>
+        private async Task RenderChunksScript()
+        {
+            while (IsRunning)
+            {
+                await Script.NextFrame();
+                
+                double playerX = PlayerMovement.X;
+                double playerZ = PlayerMovement.Z;
+                //playerX += StartPosition.X;
+                //playerZ += StartPosition.Z;
+                playerX /= Constants.ChunkSize;
+                playerZ /= Constants.ChunkSize;
+
+                byte radius = 2;
+                for (int i = 0; i < radius * radius; i++)
+                {
+                    int x = i % radius;
+                    int z = (i - x) / radius;
+
+                    if ((x * x) + (z * z) > (radius * radius)) continue;
+
+                    Factory.CheckLoad(playerX + x, 0, playerZ + z);
+                    Factory.CheckLoad(playerX - x, 0, playerZ + z);
+                    Factory.CheckLoad(playerX + x, 0, playerZ - z);
+                    Factory.CheckLoad(playerX - x, 0, playerZ - z);
+
+                    if (i % radius == 0)
+                        await Task.Delay(100);
+                }
+                //Factory.PurgeDistancedChunks(playerX, playerZ, radius + 1);
+            }
+        }
         #endregion
 
         #region Lights

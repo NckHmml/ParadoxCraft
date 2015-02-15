@@ -72,33 +72,33 @@ namespace ParadoxCraft
 
             if (left && foward)
             {
-                X -= Sin(YawAngle + (Constants.degrees90 / 2), multi);
-                Z -= Cos(YawAngle + (Constants.degrees90 / 2), multi);
+                X -= Sin(YawAngle + (Constants.Degrees90 / 2), multi);
+                Z -= Cos(YawAngle + (Constants.Degrees90 / 2), multi);
             }
             else if (right && foward)
             {
-                X -= Sin(YawAngle - (Constants.degrees90 / 2), multi);
-                Z -= Cos(YawAngle - (Constants.degrees90 / 2), multi);
+                X -= Sin(YawAngle - (Constants.Degrees90 / 2), multi);
+                Z -= Cos(YawAngle - (Constants.Degrees90 / 2), multi);
             }
             else if (left && back)
             {
-                X += Sin(YawAngle - (Constants.degrees90 / 2), multi);
-                Z += Cos(YawAngle - (Constants.degrees90 / 2), multi);
+                X += Sin(YawAngle - (Constants.Degrees90 / 2), multi);
+                Z += Cos(YawAngle - (Constants.Degrees90 / 2), multi);
             }
             else if (right && back)
             {
-                X += Sin(YawAngle + (Constants.degrees90 / 2), multi);
-                Z += Cos(YawAngle + (Constants.degrees90 / 2), multi);
+                X += Sin(YawAngle + (Constants.Degrees90 / 2), multi);
+                Z += Cos(YawAngle + (Constants.Degrees90 / 2), multi);
             }
             else if (left)
             {
-                X -= Sin(YawAngle + Constants.degrees90, multi);
-                Z -= Cos(YawAngle + Constants.degrees90, multi);
+                X -= Sin(YawAngle + Constants.Degrees90, multi);
+                Z -= Cos(YawAngle + Constants.Degrees90, multi);
             }
             else if (right)
             {
-                X -= Sin(YawAngle - Constants.degrees90, multi);
-                Z -= Cos(YawAngle - Constants.degrees90, multi);
+                X -= Sin(YawAngle - Constants.Degrees90, multi);
+                Z -= Cos(YawAngle - Constants.Degrees90, multi);
             }
             else if (back)
             {
@@ -152,13 +152,13 @@ namespace ParadoxCraft
         public void YawPitch(float yaw, float pitch)
         {
             YawAngle += yaw * 5f;
-            YawAngle %= Constants.degrees90 * 4;
+            YawAngle %= Constants.Degrees90 * 4;
 
             PitchAngle += pitch * 5f;
-            if (PitchAngle > Constants.degrees90) //Prevent backflip
-                PitchAngle = Constants.degrees90;
-            if (PitchAngle < -Constants.degrees90) //Prevent frontflip
-                PitchAngle = -Constants.degrees90;
+            if (PitchAngle > Constants.Degrees90) //Prevent backflip
+                PitchAngle = Constants.Degrees90;
+            if (PitchAngle < -Constants.Degrees90) //Prevent frontflip
+                PitchAngle = -Constants.Degrees90;
 
             Camera.Transformation.Rotation = Quaternion.RotationYawPitchRoll(YawAngle, PitchAngle, 0);
         }
@@ -189,7 +189,7 @@ namespace ParadoxCraft
 
             var angle = Math.Tan(height / width);
 
-            return angle < Constants.degrees90;
+            return angle < Constants.Degrees90;
         }
 
         private void SetPosition()

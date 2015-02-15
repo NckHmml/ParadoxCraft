@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ParadoxCraft.Block
+namespace ParadoxCraft.Blocks
 {
     /// <summary>
     /// All posible sides a block could have
