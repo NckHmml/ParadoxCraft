@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30723.0
+VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ParadoxCraft", "ParadoxCraft", "{181F95B9-A79E-4592-8E1B-D8AE18A1FFA4}"
 	ProjectSection(SiliconStudioPackage) = preProject
@@ -88,6 +88,9 @@ Global
 		{10242CD2-7C03-4132-A199-EAE16A0D71DC}.Testing|Mixed Platforms.Build.0 = Testing|Any CPU
 		{10242CD2-7C03-4132-A199-EAE16A0D71DC}.Testing|Windows.ActiveCfg = Testing|Any CPU
 		{10242CD2-7C03-4132-A199-EAE16A0D71DC}.Testing|Windows.Build.0 = Testing|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{48012EC3-759E-45A5-A624-21860447E898} = {181F95B9-A79E-4592-8E1B-D8AE18A1FFA4}

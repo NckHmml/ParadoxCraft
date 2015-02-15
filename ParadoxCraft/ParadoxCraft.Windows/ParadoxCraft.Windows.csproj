@@ -75,6 +75,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Generation\ChunkLoader.cs" />
+    <Compile Include="Generation\Mapping\Noise.cs" />
+    <Compile Include="Generation\Mapping\SeededNoise.cs" />
+    <Compile Include="Generation\WorldGenerator.cs" />
     <Compile Include="ParadoxCraftApp.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

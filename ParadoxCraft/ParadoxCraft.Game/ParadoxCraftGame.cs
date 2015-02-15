@@ -80,6 +80,7 @@ namespace ParadoxCraft
             // Lights
             Entities.Add(CreateDirectLight(new Vector3(-1, 1, 1), new Color3(1, 1, 1), 0.25f));
             Entities.Add(CreateDirectLight(new Vector3(1, -1, -1), new Color3(1, 1, 1), 0.25f));
+            Entities.Add(CreateDirectLight(new Vector3(1, .5f, 1), new Color3(1, 1, 1), 0.25f));
 
             // Entities
             LoadTerrain();
@@ -88,6 +89,7 @@ namespace ParadoxCraft
             // Scripts
             Script.Add(MovementScript);
             Script.Add(RenderChunksScript);
+            Script.Add(BuildTerrain);
         }
 
         /// <summary>
@@ -115,7 +117,6 @@ namespace ParadoxCraft
         private void LoadTerrain()
         {
             Terrain = new GraphicalTerrain(GraphicsDevice, Asset.Load<Material>("Materials/Terrain"));
-            Terrain.Build();
             Factory.Terrain = Terrain;
             Entities.Add(Terrain);
         } 
@@ -176,9 +177,7 @@ namespace ParadoxCraft
         private async Task RenderChunksScript()
         {
             while (IsRunning)
-            {
-                await Script.NextFrame();
-                
+            {                
                 double playerX = PlayerMovement.X;
                 double playerZ = PlayerMovement.Z;
                 //playerX += StartPosition.X;
@@ -187,23 +186,58 @@ namespace ParadoxCraft
                 playerZ /= Constants.ChunkSize;
 
                 // TODO: handle y
-                byte radius = 3;
-                for (int i = 0; i < radius * radius; i++)
+                for (int i = 0; i < Constants.DrawRadius * Constants.DrawRadius; i++)
                 {
-                    int x = i % radius;
-                    int z = (i - x) / radius;
+                    int x = i % Constants.DrawRadius;
+                    int z = (i - x) / Constants.DrawRadius;
 
-                    if ((x * x) + (z * z) > (radius * radius)) continue;
+                    if ((x * x) + (z * z) > (Constants.DrawRadius * Constants.DrawRadius)) continue;
 
                     Factory.CheckLoad(playerX + x, 0, playerZ + z);
                     Factory.CheckLoad(playerX - x, 0, playerZ + z);
                     Factory.CheckLoad(playerX + x, 0, playerZ - z);
                     Factory.CheckLoad(playerX - x, 0, playerZ - z);
 
-                    if (i % radius == 0)
+                    Factory.CheckLoad(playerX + x, 1, playerZ + z);
+                    Factory.CheckLoad(playerX - x, 1, playerZ + z);
+                    Factory.CheckLoad(playerX + x, 1, playerZ - z);
+                    Factory.CheckLoad(playerX - x, 1, playerZ - z);
+
+                    Factory.CheckLoad(playerX + x, 2, playerZ + z);
+                    Factory.CheckLoad(playerX - x, 2, playerZ + z);
+                    Factory.CheckLoad(playerX + x, 2, playerZ - z);
+                    Factory.CheckLoad(playerX - x, 2, playerZ - z);
+
+                    Factory.CheckLoad(playerX + x, 3, playerZ + z);
+                    Factory.CheckLoad(playerX - x, 3, playerZ + z);
+                    Factory.CheckLoad(playerX + x, 3, playerZ - z);
+                    Factory.CheckLoad(playerX - x, 3, playerZ - z);
+
+                    if (i % Constants.DrawRadius == 0)
                         await Task.Delay(100);
                 }
-                Factory.PurgeDistancedChunks(playerX, 0, playerZ, radius + 1);
+            }
+        }
+
+        /// <summary>
+        /// Checks and re-builds the terrain
+        /// </summary>
+        private async Task BuildTerrain()
+        {
+            while (IsRunning)
+            {
+                double playerX = PlayerMovement.X;
+                double playerZ = PlayerMovement.Z;
+                //playerX += StartPosition.X;
+                //playerZ += StartPosition.Z;
+                playerX /= Constants.ChunkSize;
+                playerZ /= Constants.ChunkSize;
+
+                // TODO: handle y
+                Factory.PurgeDistancedChunks(playerX, 0, playerZ, Constants.DrawRadius + 1);
+
+                Terrain.Build();
+                await Task.Delay(1000);
             }
         }
         #endregion

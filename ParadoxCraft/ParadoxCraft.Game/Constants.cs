@@ -17,5 +17,10 @@ namespace ParadoxCraft
         /// Default size of a chunk
         /// </summary>
         public const int ChunkSize = 16;
+
+        /// <summary>
+        /// Chunk drawing radius
+        /// </summary>
+        public const byte DrawRadius = 10;
     }
 }

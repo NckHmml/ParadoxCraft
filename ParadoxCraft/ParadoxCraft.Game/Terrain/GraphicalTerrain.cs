@@ -54,6 +54,9 @@ namespace ParadoxCraft.Terrain
         /// </summary>
         private object BlockLocker = new object();
 
+
+        private bool PendingChanges = false;
+
         /// <summary>
         /// Creates a new instance of <see cref="GraphicalTerrain"/>
         /// </summary>
@@ -102,6 +105,7 @@ namespace ParadoxCraft.Terrain
                     Blocks.Add(chunkPos, new List<GraphicalBlock>());
                 Blocks[chunkPos].Add(toAdd);
             }
+            PendingChanges = true;
         }
 
         /// <summary>
@@ -114,6 +118,8 @@ namespace ParadoxCraft.Terrain
                 foreach (Point3 chunkPos in toRemove)
                     Blocks.Remove(chunkPos);
             }
+            if (toRemove.Count > 0)
+                PendingChanges = true;
         }
 
         /// <summary>
@@ -121,11 +127,13 @@ namespace ParadoxCraft.Terrain
         /// </summary>
         public void Build()
         {
+            if (!PendingChanges) return;
             lock (BlockLocker)
             {
                 GenerateVertices();
                 int drawcount = GenerateIndices();
                 TerrainEntity.Get<ModelComponent>(ModelComponent.Key).Model.Meshes[0].Draw.DrawCount = drawcount;
+                PendingChanges = false;
             }
         }
 

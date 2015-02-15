@@ -24,9 +24,15 @@ namespace ParadoxCraft.Generation
         private static JavaScriptSerializer serializer = new JavaScriptSerializer();
 
         /// <summary>
+        /// Generator for generating the world its terrain
+        /// </summary>
+        private static WorldGenerator Generator;
+
+        /// <summary>
         /// Process callback to the game
         /// </summary>
         public static Action<Point3, DataChunk> ProcessChunk;
+
 
         /// <summary>
         /// Initializes the <see cref="ChunkLoader"/> instance
@@ -34,6 +40,7 @@ namespace ParadoxCraft.Generation
         public static void Initialize()
         {
             Directory.CreateDirectory("data/world/");
+            Generator = new WorldGenerator(.1); // TODO: load seed from file system
         }
 
         /// <summary>
@@ -74,13 +81,7 @@ namespace ParadoxCraft.Generation
             {
                 // Chunk does not exist, create it
                 DataChunk chunk = new DataChunk();
-                for (ushort i = 0xEF; i > 0; i--)
-                {
-                    chunk.Blocks[i] = new DataBlock()
-                    {
-                        Position = i
-                    };
-                }
+                Generator.FillChunk(ref chunk, position);
                 ProcessChunk(position, chunk);
             }
         }

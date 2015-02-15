@@ -92,33 +92,33 @@ namespace ParadoxCraft.Blocks.Chunks
         public void ProcessChunk(Point3 position, DataChunk chunk)
         {
             lock (Locker)
-            {
                 Chunks[position] = chunk;
-                Vector3 blockPos;
-                DataBlock block;
-                BlockSides sides;
-                for (int i = 0; i < chunk.Blocks.Length; i++)
-                {
-                    block = chunk.Blocks[i];
-                    if (block == null)
-                        continue;
+            Vector3 blockPos;
+            DataBlock block;
+            BlockSides sides;
+            for (int i = 0; i < chunk.Blocks.Length; i++)
+            {
+                block = chunk.Blocks[i];
+                if (block == null)
+                    continue;
 
-                    byte
-                        x = (byte)((block.Position & 0x00F)),
-                        z = (byte)((block.Position & 0x0F0) / 0x010),
-                        y = (byte)((block.Position & 0xF00) / 0x100);
+                byte
+                    x = (byte)((block.Position & 0x00F)),
+                    z = (byte)((block.Position & 0x0F0) / 0x010),
+                    y = (byte)((block.Position & 0xF00) / 0x100);
 
-                    blockPos = new Vector3(position.X * Constants.ChunkSize + x, position.Y * Constants.ChunkSize + y, position.Z * Constants.ChunkSize + z);
-                    sides = CalculateBlockSides(chunk, block.Position);
+                blockPos = new Vector3(position.X * Constants.ChunkSize + x, position.Y * Constants.ChunkSize + y, position.Z * Constants.ChunkSize + z);
+                sides = CalculateBlockSides(chunk, block.Position);
 
-                    Terrain.AddBlock(position, new GraphicalBlock(blockPos, sides));
-                }
-
-                CheckLeftChunk(position, chunk);
-                CheckRightChunk(position, chunk);
+                Terrain.AddBlock(position, new GraphicalBlock(blockPos, sides));
             }
 
-            Terrain.Build();
+            CheckLeftChunk(position, chunk);
+            CheckRightChunk(position, chunk);
+            CheckFrontChunk(position, chunk);
+            CheckBackChunk(position, chunk);
+            CheckTopChunk(position, chunk);
+            CheckBottomChunk(position, chunk);
         }
 
         #region BlockSide Checks
@@ -136,9 +136,9 @@ namespace ParadoxCraft.Blocks.Chunks
                 y = (byte)((blockPosition & 0xF00) / 0x100);
 
             if (!chunk.HasBlock(blockPosition + 0x001) && x != 0xF)
-                sides |= BlockSides.Left;
-            if (!chunk.HasBlock(blockPosition - 0x001) && x != 0x0)
                 sides |= BlockSides.Right;
+            if (!chunk.HasBlock(blockPosition - 0x001) && x != 0x0)
+                sides |= BlockSides.Left;
 
             if (!chunk.HasBlock(blockPosition + 0x010) && z != 0xF)
                 sides |= BlockSides.Front;
@@ -172,14 +172,14 @@ namespace ParadoxCraft.Blocks.Chunks
                     z = (byte)((i & 0x00F)),
                     y = (byte)((i & 0x0F0) / 0x010);
 
-                if (chunk.HasBlock(right) && !leftChunk.HasBlock(left))
+                if (chunk.HasBlock(left) && !leftChunk.HasBlock(right))
                 {
-                    var blockPos = new Vector3(chunkPos.X * Constants.ChunkSize + 0xF, chunkPos.Y * Constants.ChunkSize + y, chunkPos.Z * Constants.ChunkSize + z);
+                    var blockPos = new Vector3(chunkPos.X * Constants.ChunkSize + 0x0, chunkPos.Y * Constants.ChunkSize + y, chunkPos.Z * Constants.ChunkSize + z);
                     Terrain.AddBlock(chunkPos, new GraphicalBlock(blockPos, BlockSides.Left));
                 }
-                else if (!chunk.HasBlock(right) && leftChunk.HasBlock(left))
+                else if (!chunk.HasBlock(left) && leftChunk.HasBlock(right))
                 {
-                    var blockPos = new Vector3(leftPos.X * Constants.ChunkSize + 0x0, leftPos.Y * Constants.ChunkSize + y, leftPos.Z * Constants.ChunkSize + z);
+                    var blockPos = new Vector3(leftPos.X * Constants.ChunkSize + 0xF, leftPos.Y * Constants.ChunkSize + y, leftPos.Z * Constants.ChunkSize + z);
                     Terrain.AddBlock(leftPos, new GraphicalBlock(blockPos, BlockSides.Right));
                 }
             }
@@ -204,15 +204,139 @@ namespace ParadoxCraft.Blocks.Chunks
                     z = (byte)((i & 0x00F)),
                     y = (byte)((i & 0x0F0) / 0x010);
 
-                if (chunk.HasBlock(left) && !rightChunk.HasBlock(right))
+                if (chunk.HasBlock(right) && !rightChunk.HasBlock(left))
                 {
-                    var blockPos = new Vector3(chunkPos.X * Constants.ChunkSize + 0x0, chunkPos.Y * Constants.ChunkSize + y, chunkPos.Z * Constants.ChunkSize + z);
+                    var blockPos = new Vector3(chunkPos.X * Constants.ChunkSize + 0xF, chunkPos.Y * Constants.ChunkSize + y, chunkPos.Z * Constants.ChunkSize + z);
                     Terrain.AddBlock(chunkPos, new GraphicalBlock(blockPos, BlockSides.Right));
                 }
-                else if (!chunk.HasBlock(left) && rightChunk.HasBlock(right))
+                else if (!chunk.HasBlock(right) && rightChunk.HasBlock(left))
                 {
-                    var blockPos = new Vector3(rightPos.X * Constants.ChunkSize + 0xF, rightPos.Y * Constants.ChunkSize + y, rightPos.Z * Constants.ChunkSize + z);
+                    var blockPos = new Vector3(rightPos.X * Constants.ChunkSize + 0x0, rightPos.Y * Constants.ChunkSize + y, rightPos.Z * Constants.ChunkSize + z);
                     Terrain.AddBlock(rightPos, new GraphicalBlock(blockPos, BlockSides.Left));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Checks edges in the relative front chunk
+        /// </summary>
+        private void CheckFrontChunk(Point3 chunkPos, DataChunk chunk)
+        {
+            Point3 frontPos = chunkPos;
+            frontPos.Z += 1;
+            if (!Chunks.ContainsKey(frontPos) || Chunks[frontPos] == null) return;
+            DataChunk frontChunk = Chunks[frontPos];
+
+            for (int i = 0; i <= 0xFF; i++)
+            {
+                byte x = (byte)((i & 0x00F));
+                byte y = (byte)((i & 0x0F0) / 0x010);
+
+                int front = x + 0x0F0 + (y * 0x100);
+                int back = x + (y * 0x100);
+
+                if (chunk.HasBlock(front) && !frontChunk.HasBlock(back))
+                {
+                    var blockPos = new Vector3(chunkPos.X * Constants.ChunkSize + x, chunkPos.Y * Constants.ChunkSize + y, chunkPos.Z * Constants.ChunkSize + 0xF);
+                    Terrain.AddBlock(chunkPos, new GraphicalBlock(blockPos, BlockSides.Front));
+                }
+                else if (!chunk.HasBlock(front) && frontChunk.HasBlock(back))
+                {
+                    var blockPos = new Vector3(frontPos.X * Constants.ChunkSize + x, frontPos.Y * Constants.ChunkSize + y, frontPos.Z * Constants.ChunkSize + 0x0);
+                    Terrain.AddBlock(chunkPos, new GraphicalBlock(blockPos, BlockSides.Back));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Checks edges in the relative back chunk
+        /// </summary>
+        private void CheckBackChunk(Point3 chunkPos, DataChunk chunk)
+        {
+            Point3 backPos = chunkPos;
+            backPos.Z -= 1;
+            if (!Chunks.ContainsKey(backPos) || Chunks[backPos] == null) return;
+            DataChunk backChunk = Chunks[backPos];
+
+            for (int i = 0; i <= 0xFF; i++)
+            {
+                byte x = (byte)((i & 0x00F));
+                byte y = (byte)((i & 0x0F0) / 0x010);
+
+                int front = x + 0x0F0 + (y * 0x100);
+                int back = x + (y * 0x100);
+
+                if (chunk.HasBlock(back) && !backChunk.HasBlock(front)) 
+                {
+                    var blockPos = new Vector3(chunkPos.X * Constants.ChunkSize + x, chunkPos.Y * Constants.ChunkSize + y, chunkPos.Z * Constants.ChunkSize + 0x0);
+                    Terrain.AddBlock(chunkPos, new GraphicalBlock(blockPos, BlockSides.Back));
+                }
+                else if (!chunk.HasBlock(back) && backChunk.HasBlock(front))
+                {
+                    var blockPos = new Vector3(backPos.X * Constants.ChunkSize + x, backPos.Y * Constants.ChunkSize + y, backPos.Z * Constants.ChunkSize + 0xF);
+                    Terrain.AddBlock(chunkPos, new GraphicalBlock(blockPos, BlockSides.Front));
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Checks edges in the relative top chunk
+        /// </summary>
+        private void CheckTopChunk(Point3 chunkPos, DataChunk chunk)
+        {
+            Point3 topPos = chunkPos;
+            topPos.Y += 1;
+            if (!Chunks.ContainsKey(topPos) || Chunks[topPos] == null) return;
+            DataChunk topChunk = Chunks[topPos];
+
+            for (int i = 0; i <= 0xFF; i++)
+            {
+                byte x = (byte)((i & 0x00F));
+                byte z = (byte)((i & 0x0F0) / 0x010);
+
+                int top = x + z * 0x10 + 0xF00;
+                int bottom = x + z * 0x10;
+
+                if (chunk.HasBlock(top) && !topChunk.HasBlock(bottom))
+                {
+                    var blockPos = new Vector3(chunkPos.X * Constants.ChunkSize + x, chunkPos.Y * Constants.ChunkSize + 0xF, chunkPos.Z * Constants.ChunkSize + z);
+                    Terrain.AddBlock(chunkPos, new GraphicalBlock(blockPos, BlockSides.Top));
+                }
+                else if (!chunk.HasBlock(top) && topChunk.HasBlock(bottom))
+                {
+                    var blockPos = new Vector3(topPos.X * Constants.ChunkSize + x, topPos.Y * Constants.ChunkSize + 0x0, topPos.Z * Constants.ChunkSize + z);
+                    Terrain.AddBlock(chunkPos, new GraphicalBlock(blockPos, BlockSides.Bottom));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Checks edges in the relative bottom chunk
+        /// </summary>
+        private void CheckBottomChunk(Point3 chunkPos, DataChunk chunk)
+        {
+            Point3 bottomPos = chunkPos;
+            bottomPos.Y -= 1;
+            if (!Chunks.ContainsKey(bottomPos) || Chunks[bottomPos] == null) return;
+            DataChunk bottomChunk = Chunks[bottomPos];
+
+            for (int i = 0; i <= 0xFF; i++)
+            {
+                byte x = (byte)((i & 0x00F));
+                byte z = (byte)((i & 0x0F0) / 0x010);
+
+                int top = x + z * 0x10 + 0xF00;
+                int bottom = x + z * 0x10;
+
+                if (chunk.HasBlock(bottom) && !bottomChunk.HasBlock(top))
+                {
+                    var blockPos = new Vector3(chunkPos.X * Constants.ChunkSize + x, chunkPos.Y * Constants.ChunkSize + 0x0, chunkPos.Z * Constants.ChunkSize + z);
+                    Terrain.AddBlock(chunkPos, new GraphicalBlock(blockPos, BlockSides.Bottom));
+                }
+                else if (!chunk.HasBlock(bottom) && bottomChunk.HasBlock(top))
+                {
+                    var blockPos = new Vector3(bottomPos.X * Constants.ChunkSize + x, bottomPos.Y * Constants.ChunkSize + 0xF, bottomPos.Z * Constants.ChunkSize + z);
+                    Terrain.AddBlock(chunkPos, new GraphicalBlock(blockPos, BlockSides.Top));
                 }
             }
         }
