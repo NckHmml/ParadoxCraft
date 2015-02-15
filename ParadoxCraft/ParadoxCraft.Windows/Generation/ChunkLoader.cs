@@ -74,8 +74,7 @@ namespace ParadoxCraft.Generation
             {
                 // Chunk does not exist, create it
                 DataChunk chunk = new DataChunk();
-                chunk.Blocks = new DataBlock[0x100];
-                for (ushort i = 0xFF; i > 0; i--)
+                for (ushort i = 0xEF; i > 0; i--)
                 {
                     chunk.Blocks[i] = new DataBlock()
                     {

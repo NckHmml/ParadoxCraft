@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ParadoxCraft.Blocks
 {
-    public struct DataBlock
+    public class DataBlock
     {
         //sadly x * y * z > byte.max, thus we need 16bits (12bits)
         public ushort Position { get; set; }

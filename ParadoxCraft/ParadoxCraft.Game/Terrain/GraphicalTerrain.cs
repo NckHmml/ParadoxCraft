@@ -1,4 +1,5 @@
 ﻿using ParadoxCraft.Blocks;
+using ParadoxCraft.Helpers;
 using SiliconStudio.Core.Mathematics;
 using SiliconStudio.Paradox.Effects;
 using SiliconStudio.Paradox.Engine;
@@ -21,7 +22,7 @@ namespace ParadoxCraft.Terrain
         /// <summary>
         /// Max number of blocks the entity can support
         /// </summary>
-        public const int MaxBlockCount = 1000 * 16;
+        public const int MaxBlockCount = 32 * 0x1000;
 
         /// <summary>
         /// Vertex buffer
@@ -46,8 +47,11 @@ namespace ParadoxCraft.Terrain
         /// <summary>
         /// List of blocks to be drawn
         /// </summary>
-        private List<GraphicalBlock> Blocks { get; set; }
+        private Dictionary<Point3, List<GraphicalBlock>> Blocks { get; set; }
 
+        /// <summary>
+        /// Locker for cross threaded block adding/removing
+        /// </summary>
         private object BlockLocker = new object();
 
         /// <summary>
@@ -59,7 +63,7 @@ namespace ParadoxCraft.Terrain
         {
             // Initilize variables
             GraphicsDevice = device;
-            Blocks = new List<GraphicalBlock>();
+            Blocks = new Dictionary<Point3, List<GraphicalBlock>>();
 
             int vertexBufferSize = VertexTerrain.Layout.VertexStride * 4 * MaxBlockCount * 6; //A side has 4 vertice, a block has 6 sides
             TerrainVertexBuffer = Buffer.Vertex.New(GraphicsDevice, vertexBufferSize, GraphicsResourceUsage.Dynamic);
@@ -88,11 +92,28 @@ namespace ParadoxCraft.Terrain
         /// <remarks>
         /// Threadsafe
         /// </remarks>
-        /// <param name="toAdd">Block to add</param>
-        public void AddBlock(GraphicalBlock toAdd)
+        public void AddBlock(Point3 chunkPos, GraphicalBlock toAdd)
+        {
+            if (MaxBlockCount <= Blocks.Count) 
+                return; //Emergency overflow check, else we might end up writing corrupt memory
+            lock (BlockLocker)
+            {
+                if (!Blocks.ContainsKey(chunkPos))
+                    Blocks.Add(chunkPos, new List<GraphicalBlock>());
+                Blocks[chunkPos].Add(toAdd);
+            }
+        }
+
+        /// <summary>
+        /// Removes a chunk from the draw queue
+        /// </summary>
+        public void PurgeChunks(List<Point3> toRemove)
         {
             lock (BlockLocker)
-                Blocks.Add(toAdd);
+            {
+                foreach (Point3 chunkPos in toRemove)
+                    Blocks.Remove(chunkPos);
+            }
         }
 
         /// <summary>
@@ -119,23 +140,24 @@ namespace ParadoxCraft.Terrain
 
             int index = 0,
                 sideIndex = 0;
-            foreach (GraphicalBlock block in Blocks)
-            {
-                BlockSides sides = block.Sides;
-                while (sides > 0)
+            foreach (var chunk in Blocks)
+                foreach (GraphicalBlock block in chunk.Value)
                 {
-                    sides &= (sides - 1);
+                    BlockSides sides = block.Sides;
+                    while (sides > 0)
+                    {
+                        sides &= (sides - 1);
 
-                    indexBuffer[index++] = sideIndex + 0;
-                    indexBuffer[index++] = sideIndex + 1;
-                    indexBuffer[index++] = sideIndex + 2;
-                    indexBuffer[index++] = sideIndex + 2;
-                    indexBuffer[index++] = sideIndex + 3;
-                    indexBuffer[index++] = sideIndex + 0;
+                        indexBuffer[index++] = sideIndex + 0;
+                        indexBuffer[index++] = sideIndex + 1;
+                        indexBuffer[index++] = sideIndex + 2;
+                        indexBuffer[index++] = sideIndex + 2;
+                        indexBuffer[index++] = sideIndex + 3;
+                        indexBuffer[index++] = sideIndex + 0;
 
-                    sideIndex += 4;
+                        sideIndex += 4;
+                    }
                 }
-            }
 
             GraphicsDevice.UnmapSubresource(indexMap);
 
@@ -170,116 +192,118 @@ namespace ParadoxCraft.Terrain
                 corner7 = new Vector3(1, 0, 1),
                 corner8 = new Vector3(1, 0, 0);
 
-            foreach (GraphicalBlock block in Blocks)
-            {
-                #region Top
-                if (block.HasSide(BlockSides.Top))
-                {
-                    Vector3
-                        cornerTopLeft = block.Position + corner1,
-                        cornerBtmLeft = block.Position + corner2,
-                        cornerTopRight = block.Position + corner3,
-                        cornerBtmRight = block.Position + corner4;
-                    Half4
-                        normal = new Half4((Half)0, (Half)1, (Half)0, (Half)0);
 
-                    vertexBuffer[i++] = new VertexTerrain(cornerTopRight, normal, textureBtmLeft, 0);
-                    vertexBuffer[i++] = new VertexTerrain(cornerTopLeft, normal, textureBtmRight, 0);
-                    vertexBuffer[i++] = new VertexTerrain(cornerBtmLeft, normal, textureTopRight, 0);
-                    vertexBuffer[i++] = new VertexTerrain(cornerBtmRight, normal, textureTopLeft, 0);
+            foreach (var chunk in Blocks)
+                foreach (GraphicalBlock block in chunk.Value)
+                {
+                    #region Top
+                    if (block.HasSide(BlockSides.Top))
+                    {
+                        Vector3
+                            cornerTopLeft = block.Position + corner1,
+                            cornerBtmLeft = block.Position + corner2,
+                            cornerTopRight = block.Position + corner3,
+                            cornerBtmRight = block.Position + corner4;
+                        Half4
+                            normal = new Half4((Half)0, (Half)1, (Half)0, (Half)0);
+
+                        vertexBuffer[i++] = new VertexTerrain(cornerTopRight, normal, textureBtmLeft, 0);
+                        vertexBuffer[i++] = new VertexTerrain(cornerTopLeft, normal, textureBtmRight, 0);
+                        vertexBuffer[i++] = new VertexTerrain(cornerBtmLeft, normal, textureTopRight, 0);
+                        vertexBuffer[i++] = new VertexTerrain(cornerBtmRight, normal, textureTopLeft, 0);
+                    }
+                    #endregion
+
+                    #region Bottom
+                    if (block.HasSide(BlockSides.Bottom))
+                    {
+                        Vector3
+                            cornerTopLeft = block.Position + corner5,
+                            cornerBtmLeft = block.Position + corner6,
+                            cornerTopRight = block.Position + corner7,
+                            cornerBtmRight = block.Position + corner8;
+                        Half4
+                            normal = new Half4((Half)0, (Half)(-1), (Half)0, (Half)0);
+
+                        vertexBuffer[i++] = new VertexTerrain(cornerBtmLeft, normal, textureBtmLeft, 0);
+                        vertexBuffer[i++] = new VertexTerrain(cornerTopLeft, normal, textureTopLeft, 0);
+                        vertexBuffer[i++] = new VertexTerrain(cornerTopRight, normal, textureTopRight, 0);
+                        vertexBuffer[i++] = new VertexTerrain(cornerBtmRight, normal, textureBtmRight, 0);
+                    }
+                    #endregion
+
+                    #region Front
+                    if (block.HasSide(BlockSides.Front))
+                    {
+                        Vector3
+                            cornerTopLeft = block.Position + corner3,
+                            cornerBtmLeft = block.Position + corner7,
+                            cornerTopRight = block.Position + corner1,
+                            cornerBtmRight = block.Position + corner5;
+                        Half4
+                            normal = new Half4((Half)0, (Half)0, (Half)1, (Half)0);
+
+                        vertexBuffer[i++] = new VertexTerrain(cornerTopRight, normal, textureBtmLeft, 0);
+                        vertexBuffer[i++] = new VertexTerrain(cornerTopLeft, normal, textureBtmRight, 0);
+                        vertexBuffer[i++] = new VertexTerrain(cornerBtmLeft, normal, textureTopRight, 0);
+                        vertexBuffer[i++] = new VertexTerrain(cornerBtmRight, normal, textureTopLeft, 0);
+                    }
+                    #endregion
+
+                    #region Back
+                    if (block.HasSide(BlockSides.Back))
+                    {
+                        Vector3
+                            cornerTopLeft = block.Position + corner4,
+                            cornerBtmLeft = block.Position + corner8,
+                            cornerTopRight = block.Position + corner2,
+                            cornerBtmRight = block.Position + corner6;
+                        Half4
+                            normal = new Half4((Half)0, (Half)0, (Half)(-1), (Half)0);
+
+                        vertexBuffer[i++] = new VertexTerrain(cornerBtmLeft, normal, textureBtmLeft, 0);
+                        vertexBuffer[i++] = new VertexTerrain(cornerTopLeft, normal, textureTopLeft, 0);
+                        vertexBuffer[i++] = new VertexTerrain(cornerTopRight, normal, textureTopRight, 0);
+                        vertexBuffer[i++] = new VertexTerrain(cornerBtmRight, normal, textureBtmRight, 0);
+                    }
+                    #endregion
+
+                    #region Left
+                    if (block.HasSide(BlockSides.Left))
+                    {
+                        Vector3
+                            cornerTopLeft = block.Position + corner1,
+                            cornerBtmLeft = block.Position + corner5,
+                            cornerTopRight = block.Position + corner2,
+                            cornerBtmRight = block.Position + corner6;
+                        Half4
+                            normal = new Half4((Half)1, (Half)0, (Half)0, (Half)0);
+
+                        vertexBuffer[i++] = new VertexTerrain(cornerTopRight, normal, textureBtmLeft, 0);
+                        vertexBuffer[i++] = new VertexTerrain(cornerTopLeft, normal, textureBtmRight, 0);
+                        vertexBuffer[i++] = new VertexTerrain(cornerBtmLeft, normal, textureTopRight, 0);
+                        vertexBuffer[i++] = new VertexTerrain(cornerBtmRight, normal, textureTopLeft, 0);
+                    }
+                    #endregion
+
+                    #region Right
+                    if (block.HasSide(BlockSides.Right))
+                    {
+                        Vector3
+                            cornerTopLeft = block.Position + corner3,
+                            cornerBtmLeft = block.Position + corner7,
+                            cornerTopRight = block.Position + corner4,
+                            cornerBtmRight = block.Position + corner8;
+                        Half4
+                            normal = new Half4((Half)(-1), (Half)0, (Half)0, (Half)0);
+
+                        vertexBuffer[i++] = new VertexTerrain(cornerBtmLeft, normal, textureBtmLeft, 0);
+                        vertexBuffer[i++] = new VertexTerrain(cornerTopLeft, normal, textureTopLeft, 0);
+                        vertexBuffer[i++] = new VertexTerrain(cornerTopRight, normal, textureTopRight, 0);
+                        vertexBuffer[i++] = new VertexTerrain(cornerBtmRight, normal, textureBtmRight, 0);
+                    }
+                    #endregion
                 }
-                #endregion
-
-                #region Bottom
-                if (block.HasSide(BlockSides.Bottom))
-                {
-                    Vector3
-                        cornerTopLeft = block.Position + corner5,
-                        cornerBtmLeft = block.Position + corner6,
-                        cornerTopRight = block.Position + corner7,
-                        cornerBtmRight = block.Position + corner8;
-                    Half4
-                        normal = new Half4((Half)0, (Half)(-1), (Half)0, (Half)0);
-
-                    vertexBuffer[i++] = new VertexTerrain(cornerBtmLeft, normal, textureBtmLeft, 0);
-                    vertexBuffer[i++] = new VertexTerrain(cornerTopLeft, normal, textureTopLeft, 0);
-                    vertexBuffer[i++] = new VertexTerrain(cornerTopRight, normal, textureTopRight, 0);
-                    vertexBuffer[i++] = new VertexTerrain(cornerBtmRight, normal, textureBtmRight, 0);
-                }
-                #endregion
-
-                #region Front
-                if (block.HasSide(BlockSides.Front))
-                {
-                    Vector3
-                        cornerTopLeft = block.Position + corner3,
-                        cornerBtmLeft = block.Position + corner7,
-                        cornerTopRight = block.Position + corner1,
-                        cornerBtmRight = block.Position + corner5;
-                    Half4
-                        normal = new Half4((Half)0, (Half)0, (Half)1, (Half)0);
-
-                    vertexBuffer[i++] = new VertexTerrain(cornerTopRight, normal, textureBtmLeft, 0);
-                    vertexBuffer[i++] = new VertexTerrain(cornerTopLeft, normal, textureBtmRight, 0);
-                    vertexBuffer[i++] = new VertexTerrain(cornerBtmLeft, normal, textureTopRight, 0);
-                    vertexBuffer[i++] = new VertexTerrain(cornerBtmRight, normal, textureTopLeft, 0);
-                } 
-                #endregion
-
-                #region Back
-                if (block.HasSide(BlockSides.Back))
-                {
-                    Vector3
-                        cornerTopLeft = block.Position + corner4,
-                        cornerBtmLeft = block.Position + corner8,
-                        cornerTopRight = block.Position + corner2,
-                        cornerBtmRight = block.Position + corner6;
-                    Half4
-                        normal = new Half4((Half)0, (Half)0, (Half)(-1), (Half)0);
-
-                    vertexBuffer[i++] = new VertexTerrain(cornerBtmLeft, normal, textureBtmLeft, 0);
-                    vertexBuffer[i++] = new VertexTerrain(cornerTopLeft, normal, textureTopLeft, 0);
-                    vertexBuffer[i++] = new VertexTerrain(cornerTopRight, normal, textureTopRight, 0);
-                    vertexBuffer[i++] = new VertexTerrain(cornerBtmRight, normal, textureBtmRight, 0);
-                }
-                #endregion
-
-                #region Left
-                if (block.HasSide(BlockSides.Left))
-                {
-                    Vector3
-                        cornerTopLeft = block.Position + corner1,
-                        cornerBtmLeft = block.Position + corner5,
-                        cornerTopRight = block.Position + corner2,
-                        cornerBtmRight = block.Position + corner6;
-                    Half4
-                        normal = new Half4((Half)1, (Half)0, (Half)0, (Half)0);
-
-                    vertexBuffer[i++] = new VertexTerrain(cornerTopRight, normal, textureBtmLeft, 0);
-                    vertexBuffer[i++] = new VertexTerrain(cornerTopLeft, normal, textureBtmRight, 0);
-                    vertexBuffer[i++] = new VertexTerrain(cornerBtmLeft, normal, textureTopRight, 0);
-                    vertexBuffer[i++] = new VertexTerrain(cornerBtmRight, normal, textureTopLeft, 0);
-                }
-                #endregion
-
-                #region Right
-                if (block.HasSide(BlockSides.Right))
-                {
-                    Vector3
-                        cornerTopLeft = block.Position + corner3,
-                        cornerBtmLeft = block.Position + corner7,
-                        cornerTopRight = block.Position + corner4,
-                        cornerBtmRight = block.Position + corner8;
-                    Half4
-                        normal = new Half4((Half)(-1), (Half)0, (Half)0, (Half)0);
-
-                    vertexBuffer[i++] = new VertexTerrain(cornerBtmLeft, normal, textureBtmLeft, 0);
-                    vertexBuffer[i++] = new VertexTerrain(cornerTopLeft, normal, textureTopLeft, 0);
-                    vertexBuffer[i++] = new VertexTerrain(cornerTopRight, normal, textureTopRight, 0);
-                    vertexBuffer[i++] = new VertexTerrain(cornerBtmRight, normal, textureBtmRight, 0);
-                }
-                #endregion
-            }
 
             GraphicsDevice.UnmapSubresource(vertexMap);
         }

@@ -6,8 +6,15 @@ using System.Threading.Tasks;
 
 namespace ParadoxCraft.Blocks.Chunks
 {
-    public struct DataChunk
+    public class DataChunk
     {
-        public DataBlock[] Blocks;
+        public DataBlock[] Blocks = new DataBlock[0x1000];
+
+        public bool HasBlock(int position)
+        {
+            if (position < 0 || position > Blocks.Length - 1)
+                return true; 
+            return Blocks[position] != null;
+        }
     }
 }

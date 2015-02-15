@@ -186,7 +186,8 @@ namespace ParadoxCraft
                 playerX /= Constants.ChunkSize;
                 playerZ /= Constants.ChunkSize;
 
-                byte radius = 2;
+                // TODO: handle y
+                byte radius = 3;
                 for (int i = 0; i < radius * radius; i++)
                 {
                     int x = i % radius;
@@ -202,7 +203,7 @@ namespace ParadoxCraft
                     if (i % radius == 0)
                         await Task.Delay(100);
                 }
-                //Factory.PurgeDistancedChunks(playerX, playerZ, radius + 1);
+                Factory.PurgeDistancedChunks(playerX, 0, playerZ, radius + 1);
             }
         }
         #endregion
