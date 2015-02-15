@@ -100,6 +100,7 @@
     <Compile Include="Helpers\Point3.cs" />
     <Compile Include="Movement.cs" />
     <Compile Include="Terrain\GraphicalTerrain.cs" />
+    <Compile Include="Terrain\TerrainMesh.cs" />
     <Compile Include="Terrain\VertexTerrain.cs" />
     <None Include="Effects\Permutations.pdxfxlib" />
     <None Include="Effects\ParadoxCraftEffectMain.pdxfx">

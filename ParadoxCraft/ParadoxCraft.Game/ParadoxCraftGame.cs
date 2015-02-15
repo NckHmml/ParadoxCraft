@@ -237,7 +237,7 @@ namespace ParadoxCraft
                 Factory.PurgeDistancedChunks(playerX, 0, playerZ, Constants.DrawRadius + 1);
 
                 Terrain.Build();
-                await Task.Delay(1000);
+                await Task.Delay(100);
             }
         }
         #endregion
