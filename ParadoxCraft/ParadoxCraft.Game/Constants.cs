@@ -16,6 +16,6 @@ namespace ParadoxCraft
         /// <summary>
         /// Default size of a chunk
         /// </summary>
-        public const int ChunkSize = 32;
+        public const int ChunkSize = 16;
     }
 }

@@ -161,15 +161,14 @@ namespace ParadoxCraft.Terrain
 
             // Size vector and corner positions
             Vector3 
-                Size = new Vector3(2) * 1f,
-                corner1 = new Vector3(0, 1, 1) * Size,
-                corner2 = new Vector3(0, 1, 0) * Size,
-                corner3 = new Vector3(1, 1, 1) * Size,
-                corner4 = new Vector3(1, 1, 0) * Size,
-                corner5 = new Vector3(0, 0, 1) * Size,
-                corner6 = new Vector3(0, 0, 0) * Size,
-                corner7 = new Vector3(1, 0, 1) * Size,
-                corner8 = new Vector3(1, 0, 0) * Size;
+                corner1 = new Vector3(0, 1, 1),
+                corner2 = new Vector3(0, 1, 0),
+                corner3 = new Vector3(1, 1, 1),
+                corner4 = new Vector3(1, 1, 0),
+                corner5 = new Vector3(0, 0, 1),
+                corner6 = new Vector3(0, 0, 0),
+                corner7 = new Vector3(1, 0, 1),
+                corner8 = new Vector3(1, 0, 0);
 
             foreach (GraphicalBlock block in Blocks)
             {

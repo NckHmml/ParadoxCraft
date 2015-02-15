@@ -8,6 +8,6 @@ namespace ParadoxCraft.Blocks.Chunks
 {
     public struct DataChunk
     {
-        public DataBlock?[] Blocks;
+        public DataBlock[] Blocks;
     }
 }

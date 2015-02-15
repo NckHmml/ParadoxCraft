@@ -64,10 +64,7 @@ namespace ParadoxCraft.Blocks.Chunks
             DataBlock block;
             for (int i = 0; i < chunk.Blocks.Length; i++)
             {
-                if (chunk.Blocks[i] == null)
-                    continue;
-
-                block = chunk.Blocks[i].Value;
+                block = chunk.Blocks[i];
 
                 byte
                     x = (byte)((block.Position & 0x00F)),
