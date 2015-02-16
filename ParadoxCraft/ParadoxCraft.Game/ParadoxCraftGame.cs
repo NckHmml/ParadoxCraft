@@ -78,8 +78,8 @@ namespace ParadoxCraft
                 GraphicsDevice.Parameters.Set(Effect.RasterizerStateKey, RasterizerState.New(GraphicsDevice, new RasterizerStateDescription(CullMode.None) { FillMode = FillMode.Wireframe }));
 
             // Lights
-            Entities.Add(CreateDirectLight(new Vector3(-1, 1, 1), new Color3(1, 1, 1), 0.25f));
-            Entities.Add(CreateDirectLight(new Vector3(1, -1, -1), new Color3(1, 1, 1), 0.25f));
+            Entities.Add(CreateDirectLight(new Vector3(-1, .9f, 1), new Color3(1, 1, 1), 0.25f));
+            Entities.Add(CreateDirectLight(new Vector3(1, -.9f, -1), new Color3(1, 1, 1), 0.25f));
             Entities.Add(CreateDirectLight(new Vector3(1, .5f, 1), new Color3(1, 1, 1), 0.25f));
 
             // Entities

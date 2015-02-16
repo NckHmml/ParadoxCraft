@@ -66,21 +66,15 @@ namespace ParadoxCraft.Blocks.Chunks
         {
             lock (Locker)
             {
-                List<Point3> toRemove = new List<Point3>();
-                // TODO: check y
-                foreach (var chunk in Chunks.Where(pair =>
-                    {
-                        var height = x - pair.Key.X;
-                        var width = z - pair.Key.Z;
-                        var distance = Math.Sqrt((height * height) + (width * width));
-                        return distance > radius;
-                    }))
-                    toRemove.Add(chunk.Key);
+                var position = new Point3<double>()
+                {
+                    X = x,
+                    Y = y,
+                    Z = z
+                };
 
-                Terrain.PurgeChunks(toRemove);
-
-                foreach (var chunk in toRemove)
-                    Chunks.Remove(chunk);
+                foreach (Point3 pos in Terrain.PurgeChunks(position, radius).Distinct())
+                    Chunks.Remove(pos);
             }
         }
 

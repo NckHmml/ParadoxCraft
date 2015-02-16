@@ -75,10 +75,11 @@ namespace ParadoxCraft.Terrain
         /// <summary>
         /// Removes a chunk from the draw queue
         /// </summary>
-        public void PurgeChunks(List<Point3> toRemove)
+        public IEnumerable<Point3> PurgeChunks(Point3<double> position, int radius)
         {
             foreach (TerrainMesh mesh in Meshes)
-                mesh.TryPurgeChunks(toRemove);
+                foreach (Point3 pos in mesh.TryPurgeChunks(position, radius))
+                    yield return pos;
         }
 
         /// <summary>

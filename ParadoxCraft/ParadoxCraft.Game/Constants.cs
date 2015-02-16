@@ -21,6 +21,6 @@ namespace ParadoxCraft
         /// <summary>
         /// Chunk drawing radius
         /// </summary>
-        public const byte DrawRadius = 15;
+        public const byte DrawRadius = 10;
     }
 }

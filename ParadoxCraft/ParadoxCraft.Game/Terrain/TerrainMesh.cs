@@ -107,13 +107,25 @@ namespace ParadoxCraft.Terrain
         /// <summary>
         /// Purges a chunk when inside the current buffer
         /// </summary>
-        public void TryPurgeChunks(List<Point3> toRemove)
+        public IEnumerable<Point3> TryPurgeChunks(Point3<double> position, int radius)
         {
+            List<Point3> AllChunks;
             lock (BlockLocker)
+                AllChunks = Blocks.Keys.ToList();
+
+            // TODO: check y
+            foreach (var chunk in AllChunks.Where(pair =>
             {
-                foreach (Point3 chunkPos in toRemove)
-                    Blocks.Remove(chunkPos);
+                var height = position.X - pair.X;
+                var width = position.Z - pair.Z;
+                var distance = Math.Sqrt((height * height) + (width * width));
+                return distance > radius;
+            }))
+            {
+                Blocks.Remove(chunk);
+                yield return chunk;
             }
+            AllChunks.Clear();
             PendingChanges = true;
         }
 
