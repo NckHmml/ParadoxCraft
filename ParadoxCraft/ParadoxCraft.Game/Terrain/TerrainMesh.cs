@@ -97,10 +97,11 @@ namespace ParadoxCraft.Terrain
 
             lock (BlockLocker)
             {
-                if (!Blocks.ContainsKey(chunkPos))
+                List<GraphicalBlock> blocks;
+                if (!Blocks.TryGetValue(chunkPos, out blocks))
                     Blocks.Add(chunkPos, toAdd);
-                else 
-                    Blocks[chunkPos].AddRange(toAdd);
+                else
+                    blocks.AddRange(toAdd);
             }
             PendingChanges = true;
         }
