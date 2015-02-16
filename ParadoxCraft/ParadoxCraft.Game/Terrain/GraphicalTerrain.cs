@@ -45,7 +45,7 @@ namespace ParadoxCraft.Terrain
         {
             // Initilize variables
             GraphicsDevice = device;
-            Meshes = TerrainMesh.New(device, 32).ToList();
+            Meshes = TerrainMesh.New(device, 16).ToList();
 
             // Create the terrain entity
             var model = new Model();            
@@ -64,7 +64,7 @@ namespace ParadoxCraft.Terrain
         /// <remarks>
         /// Threadsafe
         /// </remarks>
-        public void AddBlocks(Point3 chunkPos, IEnumerable<GraphicalBlock> toAdd)
+        public void AddBlocks(Point3 chunkPos, List<GraphicalBlock> toAdd)
         {
             int index = chunkPos.X % Meshes.Count;
             if (index < 0)

@@ -30,7 +30,7 @@ namespace ParadoxCraft.Blocks
         public GraphicalBlock(Vector3 position, BlockSides sides)
         {
             Sides = sides;
-            Position = new Vector3(position.ToArray());            
+            Position = position;         
         }
 
         /// <summary>

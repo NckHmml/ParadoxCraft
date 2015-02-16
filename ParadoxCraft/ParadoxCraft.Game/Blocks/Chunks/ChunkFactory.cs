@@ -116,7 +116,6 @@ namespace ParadoxCraft.Blocks.Chunks
             CheckBottomChunk(position, chunk, toAdd);
 
             Terrain.AddBlocks(position, toAdd);
-            toAdd.Clear();
         }
 
         #region BlockSide Checks
@@ -158,8 +157,8 @@ namespace ParadoxCraft.Blocks.Chunks
         {
             Point3 leftPos = chunkPos;
             leftPos.X -= 1;
-            if (!Chunks.ContainsKey(leftPos) || Chunks[leftPos] == null) return;
-            DataChunk leftChunk = Chunks[leftPos];
+            DataChunk leftChunk;
+            if (!Chunks.TryGetValue(leftPos, out leftChunk) || leftChunk == null) return;
 
             for (int i = 0; i <= 0xFF; i++)
             {
@@ -190,8 +189,8 @@ namespace ParadoxCraft.Blocks.Chunks
         {
             Point3 rightPos = chunkPos;
             rightPos.X += 1;
-            if (!Chunks.ContainsKey(rightPos) || Chunks[rightPos] == null) return;
-            DataChunk rightChunk = Chunks[rightPos];
+            DataChunk rightChunk;
+            if (!Chunks.TryGetValue(rightPos, out rightChunk) || rightChunk == null) return;
 
             for (int i = 0; i <= 0xFF; i++)
             {
@@ -222,8 +221,8 @@ namespace ParadoxCraft.Blocks.Chunks
         {
             Point3 frontPos = chunkPos;
             frontPos.Z += 1;
-            if (!Chunks.ContainsKey(frontPos) || Chunks[frontPos] == null) return;
-            DataChunk frontChunk = Chunks[frontPos];
+            DataChunk frontChunk;
+            if (!Chunks.TryGetValue(frontPos, out frontChunk) || frontChunk == null) return;
 
             for (int i = 0; i <= 0xFF; i++)
             {
@@ -253,8 +252,8 @@ namespace ParadoxCraft.Blocks.Chunks
         {
             Point3 backPos = chunkPos;
             backPos.Z -= 1;
-            if (!Chunks.ContainsKey(backPos) || Chunks[backPos] == null) return;
-            DataChunk backChunk = Chunks[backPos];
+            DataChunk backChunk;
+            if (!Chunks.TryGetValue(backPos, out backChunk) || backChunk == null) return;
 
             for (int i = 0; i <= 0xFF; i++)
             {
@@ -284,8 +283,8 @@ namespace ParadoxCraft.Blocks.Chunks
         {
             Point3 topPos = chunkPos;
             topPos.Y += 1;
-            if (!Chunks.ContainsKey(topPos) || Chunks[topPos] == null) return;
-            DataChunk topChunk = Chunks[topPos];
+            DataChunk topChunk;
+            if (!Chunks.TryGetValue(topPos, out topChunk) || topChunk == null) return;
 
             for (int i = 0; i <= 0xFF; i++)
             {
@@ -315,8 +314,8 @@ namespace ParadoxCraft.Blocks.Chunks
         {
             Point3 bottomPos = chunkPos;
             bottomPos.Y -= 1;
-            if (!Chunks.ContainsKey(bottomPos) || Chunks[bottomPos] == null) return;
-            DataChunk bottomChunk = Chunks[bottomPos];
+            DataChunk bottomChunk;
+            if (!Chunks.TryGetValue(bottomPos, out bottomChunk) || bottomChunk == null) return;
 
             for (int i = 0; i <= 0xFF; i++)
             {
