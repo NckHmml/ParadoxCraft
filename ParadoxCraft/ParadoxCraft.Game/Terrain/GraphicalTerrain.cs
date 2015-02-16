@@ -64,12 +64,12 @@ namespace ParadoxCraft.Terrain
         /// <remarks>
         /// Threadsafe
         /// </remarks>
-        public void AddBlock(Point3 chunkPos, GraphicalBlock toAdd)
+        public void AddBlocks(Point3 chunkPos, IEnumerable<GraphicalBlock> toAdd)
         {
             int index = chunkPos.X % Meshes.Count;
             if (index < 0)
                 index *= -1;
-            Meshes[index].AddBlock(chunkPos, toAdd);
+            Meshes[index].AddBlocks(chunkPos, toAdd);
         }
 
         /// <summary>

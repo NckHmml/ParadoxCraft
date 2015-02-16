@@ -90,7 +90,7 @@ namespace ParadoxCraft.Terrain
         /// <summary>
         /// Adds a block to the buffer
         /// </summary>
-        public void AddBlock(Point3 chunkPos, GraphicalBlock toAdd)
+        public void AddBlocks(Point3 chunkPos, IEnumerable<GraphicalBlock> toAdd)
         {
             if (TerrainMesh.MaxBlockCount <= Blocks.Count)
                 return; //Emergency overflow check, else we might end up writing corrupt memory
@@ -99,7 +99,7 @@ namespace ParadoxCraft.Terrain
             {
                 if (!Blocks.ContainsKey(chunkPos))
                     Blocks.Add(chunkPos, new List<GraphicalBlock>());
-                Blocks[chunkPos].Add(toAdd);
+                Blocks[chunkPos].AddRange(toAdd);
             }
             PendingChanges = true;
         }

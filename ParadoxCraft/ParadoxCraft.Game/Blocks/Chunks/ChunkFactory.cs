@@ -96,6 +96,7 @@ namespace ParadoxCraft.Blocks.Chunks
             Vector3 blockPos;
             DataBlock block;
             BlockSides sides;
+            List<GraphicalBlock> toAdd = new List<GraphicalBlock>();
             for (int i = 0; i < chunk.Blocks.Length; i++)
             {
                 block = chunk.Blocks[i];
@@ -110,15 +111,18 @@ namespace ParadoxCraft.Blocks.Chunks
                 blockPos = new Vector3(position.X * Constants.ChunkSize + x, position.Y * Constants.ChunkSize + y, position.Z * Constants.ChunkSize + z);
                 sides = CalculateBlockSides(chunk, block.Position);
 
-                Terrain.AddBlock(position, new GraphicalBlock(blockPos, sides));
+                toAdd.Add(new GraphicalBlock(blockPos, sides));
             }
 
-            CheckLeftChunk(position, chunk);
-            CheckRightChunk(position, chunk);
-            CheckFrontChunk(position, chunk);
-            CheckBackChunk(position, chunk);
-            CheckTopChunk(position, chunk);
-            CheckBottomChunk(position, chunk);
+            CheckLeftChunk(position, chunk, toAdd);
+            CheckRightChunk(position, chunk, toAdd);
+            CheckFrontChunk(position, chunk, toAdd);
+            CheckBackChunk(position, chunk, toAdd);
+            CheckTopChunk(position, chunk, toAdd);
+            CheckBottomChunk(position, chunk, toAdd);
+
+            Terrain.AddBlocks(position, toAdd);
+            toAdd.Clear();
         }
 
         #region BlockSide Checks
@@ -156,7 +160,7 @@ namespace ParadoxCraft.Blocks.Chunks
         /// <summary>
         /// Checks edges in the relative left chunk
         /// </summary>
-        private void CheckLeftChunk(Point3 chunkPos, DataChunk chunk)
+        private void CheckLeftChunk(Point3 chunkPos, DataChunk chunk, List<GraphicalBlock> toAdd)
         {
             Point3 leftPos = chunkPos;
             leftPos.X -= 1;
@@ -175,12 +179,12 @@ namespace ParadoxCraft.Blocks.Chunks
                 if (chunk.HasBlock(left) && !leftChunk.HasBlock(right))
                 {
                     var blockPos = new Vector3(chunkPos.X * Constants.ChunkSize + 0x0, chunkPos.Y * Constants.ChunkSize + y, chunkPos.Z * Constants.ChunkSize + z);
-                    Terrain.AddBlock(chunkPos, new GraphicalBlock(blockPos, BlockSides.Left));
+                    toAdd.Add(new GraphicalBlock(blockPos, BlockSides.Left));
                 }
                 else if (!chunk.HasBlock(left) && leftChunk.HasBlock(right))
                 {
                     var blockPos = new Vector3(leftPos.X * Constants.ChunkSize + 0xF, leftPos.Y * Constants.ChunkSize + y, leftPos.Z * Constants.ChunkSize + z);
-                    Terrain.AddBlock(leftPos, new GraphicalBlock(blockPos, BlockSides.Right));
+                    toAdd.Add(new GraphicalBlock(blockPos, BlockSides.Right));
                 }
             }
         }
@@ -188,7 +192,7 @@ namespace ParadoxCraft.Blocks.Chunks
         /// <summary>
         /// Checks edges in the relative right chunk
         /// </summary>
-        private void CheckRightChunk(Point3 chunkPos, DataChunk chunk)
+        private void CheckRightChunk(Point3 chunkPos, DataChunk chunk, List<GraphicalBlock> toAdd)
         {
             Point3 rightPos = chunkPos;
             rightPos.X += 1;
@@ -207,12 +211,12 @@ namespace ParadoxCraft.Blocks.Chunks
                 if (chunk.HasBlock(right) && !rightChunk.HasBlock(left))
                 {
                     var blockPos = new Vector3(chunkPos.X * Constants.ChunkSize + 0xF, chunkPos.Y * Constants.ChunkSize + y, chunkPos.Z * Constants.ChunkSize + z);
-                    Terrain.AddBlock(chunkPos, new GraphicalBlock(blockPos, BlockSides.Right));
+                    toAdd.Add(new GraphicalBlock(blockPos, BlockSides.Right));
                 }
                 else if (!chunk.HasBlock(right) && rightChunk.HasBlock(left))
                 {
                     var blockPos = new Vector3(rightPos.X * Constants.ChunkSize + 0x0, rightPos.Y * Constants.ChunkSize + y, rightPos.Z * Constants.ChunkSize + z);
-                    Terrain.AddBlock(rightPos, new GraphicalBlock(blockPos, BlockSides.Left));
+                    toAdd.Add(new GraphicalBlock(blockPos, BlockSides.Left));
                 }
             }
         }
@@ -220,7 +224,7 @@ namespace ParadoxCraft.Blocks.Chunks
         /// <summary>
         /// Checks edges in the relative front chunk
         /// </summary>
-        private void CheckFrontChunk(Point3 chunkPos, DataChunk chunk)
+        private void CheckFrontChunk(Point3 chunkPos, DataChunk chunk, List<GraphicalBlock> toAdd)
         {
             Point3 frontPos = chunkPos;
             frontPos.Z += 1;
@@ -238,12 +242,12 @@ namespace ParadoxCraft.Blocks.Chunks
                 if (chunk.HasBlock(front) && !frontChunk.HasBlock(back))
                 {
                     var blockPos = new Vector3(chunkPos.X * Constants.ChunkSize + x, chunkPos.Y * Constants.ChunkSize + y, chunkPos.Z * Constants.ChunkSize + 0xF);
-                    Terrain.AddBlock(chunkPos, new GraphicalBlock(blockPos, BlockSides.Front));
+                    toAdd.Add(new GraphicalBlock(blockPos, BlockSides.Front));
                 }
                 else if (!chunk.HasBlock(front) && frontChunk.HasBlock(back))
                 {
                     var blockPos = new Vector3(frontPos.X * Constants.ChunkSize + x, frontPos.Y * Constants.ChunkSize + y, frontPos.Z * Constants.ChunkSize + 0x0);
-                    Terrain.AddBlock(chunkPos, new GraphicalBlock(blockPos, BlockSides.Back));
+                    toAdd.Add(new GraphicalBlock(blockPos, BlockSides.Back));
                 }
             }
         }
@@ -251,7 +255,7 @@ namespace ParadoxCraft.Blocks.Chunks
         /// <summary>
         /// Checks edges in the relative back chunk
         /// </summary>
-        private void CheckBackChunk(Point3 chunkPos, DataChunk chunk)
+        private void CheckBackChunk(Point3 chunkPos, DataChunk chunk, List<GraphicalBlock> toAdd)
         {
             Point3 backPos = chunkPos;
             backPos.Z -= 1;
@@ -269,12 +273,12 @@ namespace ParadoxCraft.Blocks.Chunks
                 if (chunk.HasBlock(back) && !backChunk.HasBlock(front)) 
                 {
                     var blockPos = new Vector3(chunkPos.X * Constants.ChunkSize + x, chunkPos.Y * Constants.ChunkSize + y, chunkPos.Z * Constants.ChunkSize + 0x0);
-                    Terrain.AddBlock(chunkPos, new GraphicalBlock(blockPos, BlockSides.Back));
+                    toAdd.Add(new GraphicalBlock(blockPos, BlockSides.Back));
                 }
                 else if (!chunk.HasBlock(back) && backChunk.HasBlock(front))
                 {
                     var blockPos = new Vector3(backPos.X * Constants.ChunkSize + x, backPos.Y * Constants.ChunkSize + y, backPos.Z * Constants.ChunkSize + 0xF);
-                    Terrain.AddBlock(chunkPos, new GraphicalBlock(blockPos, BlockSides.Front));
+                    toAdd.Add(new GraphicalBlock(blockPos, BlockSides.Front));
                 }
             }
         }
@@ -282,7 +286,7 @@ namespace ParadoxCraft.Blocks.Chunks
         /// <summary>
         /// Checks edges in the relative top chunk
         /// </summary>
-        private void CheckTopChunk(Point3 chunkPos, DataChunk chunk)
+        private void CheckTopChunk(Point3 chunkPos, DataChunk chunk, List<GraphicalBlock> toAdd)
         {
             Point3 topPos = chunkPos;
             topPos.Y += 1;
@@ -300,12 +304,12 @@ namespace ParadoxCraft.Blocks.Chunks
                 if (chunk.HasBlock(top) && !topChunk.HasBlock(bottom))
                 {
                     var blockPos = new Vector3(chunkPos.X * Constants.ChunkSize + x, chunkPos.Y * Constants.ChunkSize + 0xF, chunkPos.Z * Constants.ChunkSize + z);
-                    Terrain.AddBlock(chunkPos, new GraphicalBlock(blockPos, BlockSides.Top));
+                    toAdd.Add(new GraphicalBlock(blockPos, BlockSides.Top));
                 }
                 else if (!chunk.HasBlock(top) && topChunk.HasBlock(bottom))
                 {
                     var blockPos = new Vector3(topPos.X * Constants.ChunkSize + x, topPos.Y * Constants.ChunkSize + 0x0, topPos.Z * Constants.ChunkSize + z);
-                    Terrain.AddBlock(chunkPos, new GraphicalBlock(blockPos, BlockSides.Bottom));
+                    toAdd.Add(new GraphicalBlock(blockPos, BlockSides.Bottom));
                 }
             }
         }
@@ -313,7 +317,7 @@ namespace ParadoxCraft.Blocks.Chunks
         /// <summary>
         /// Checks edges in the relative bottom chunk
         /// </summary>
-        private void CheckBottomChunk(Point3 chunkPos, DataChunk chunk)
+        private void CheckBottomChunk(Point3 chunkPos, DataChunk chunk, List<GraphicalBlock> toAdd)
         {
             Point3 bottomPos = chunkPos;
             bottomPos.Y -= 1;
@@ -331,12 +335,12 @@ namespace ParadoxCraft.Blocks.Chunks
                 if (chunk.HasBlock(bottom) && !bottomChunk.HasBlock(top))
                 {
                     var blockPos = new Vector3(chunkPos.X * Constants.ChunkSize + x, chunkPos.Y * Constants.ChunkSize + 0x0, chunkPos.Z * Constants.ChunkSize + z);
-                    Terrain.AddBlock(chunkPos, new GraphicalBlock(blockPos, BlockSides.Bottom));
+                    toAdd.Add(new GraphicalBlock(blockPos, BlockSides.Bottom));
                 }
                 else if (!chunk.HasBlock(bottom) && bottomChunk.HasBlock(top))
                 {
                     var blockPos = new Vector3(bottomPos.X * Constants.ChunkSize + x, bottomPos.Y * Constants.ChunkSize + 0xF, bottomPos.Z * Constants.ChunkSize + z);
-                    Terrain.AddBlock(chunkPos, new GraphicalBlock(blockPos, BlockSides.Top));
+                    toAdd.Add(new GraphicalBlock(blockPos, BlockSides.Top));
                 }
             }
         }
