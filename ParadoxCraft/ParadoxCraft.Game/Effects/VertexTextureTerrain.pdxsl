@@ -7,8 +7,12 @@
 		AddressV = Wrap;
 	};
 
-    stage Texture2D MeshTexture0;
-    stage Texture2D MeshTexture1;
+    stage Texture2D Coal_ore;
+    stage Texture2D Cobblestone;
+    stage Texture2D Dirt;
+    stage Texture2D Grass_side;
+    stage Texture2D Grass_top;
+    stage Texture2D Stone;
 
     stage stream half2 TexCoord : TEXCOORD0;
     stage stream uint Material : MATERIAL0;
@@ -17,13 +21,19 @@
     {
         switch(streams.Material) 
         {
-            case 0: // Stone
-                return MeshTexture0.Sample(MeshTextureSampler, streams.TexCoord);
-                break;
-            case 1: // Coal
-                return MeshTexture1.Sample(MeshTextureSampler, streams.TexCoord);
-                break;
+            case 0x000: 
+                return Stone.Sample(MeshTextureSampler, streams.TexCoord);
+            case 0x001: 
+                return Cobblestone.Sample(MeshTextureSampler, streams.TexCoord);
+            case 0x002: 
+            case 0x003:
+                return Dirt.Sample(MeshTextureSampler, streams.TexCoord);
+            case 0x103: 
+                return Grass_side.Sample(MeshTextureSampler, streams.TexCoord);
+            case 0x203: 
+                return Grass_top.Sample(MeshTextureSampler, streams.TexCoord);
+            default:
+                return 0;
         }
-        return 0;
     }
 };

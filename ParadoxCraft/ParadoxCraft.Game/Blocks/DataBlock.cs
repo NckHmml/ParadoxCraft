@@ -10,5 +10,7 @@ namespace ParadoxCraft.Blocks
     {
         //sadly x * y * z > byte.max, thus we need 16bits (12bits)
         public ushort Position { get; set; }
+
+        public ushort Material { get; set; }
     }
 }

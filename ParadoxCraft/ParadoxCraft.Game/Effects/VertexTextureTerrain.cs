@@ -19,7 +19,11 @@ namespace SiliconStudio.Paradox.Effects
     public static partial class VertexTextureTerrainKeys
     {
         public static readonly ParameterKey<SamplerState> MeshTextureSampler = ParameterKeys.New<SamplerState>();
-        public static readonly ParameterKey<Texture> MeshTexture0 = ParameterKeys.New<Texture>();
-        public static readonly ParameterKey<Texture> MeshTexture1 = ParameterKeys.New<Texture>();
+        public static readonly ParameterKey<Texture> Coal_ore = ParameterKeys.New<Texture>();
+        public static readonly ParameterKey<Texture> Cobblestone = ParameterKeys.New<Texture>();
+        public static readonly ParameterKey<Texture> Dirt = ParameterKeys.New<Texture>();
+        public static readonly ParameterKey<Texture> Grass_side = ParameterKeys.New<Texture>();
+        public static readonly ParameterKey<Texture> Grass_top = ParameterKeys.New<Texture>();
+        public static readonly ParameterKey<Texture> Stone = ParameterKeys.New<Texture>();
     }
 }

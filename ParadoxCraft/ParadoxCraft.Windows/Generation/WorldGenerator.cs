@@ -87,7 +87,7 @@ namespace ParadoxCraft.Generation
                 curY = (int)(pos.Y * 0x10 + y / 0x100);
                 chunk.Blocks[position] = new DataBlock()
                 {
-                    //Material = maxY - curY <= 3 ? maxY - curY == 0 ? MaterialTypes.Grass : MaterialTypes.Dirt : MaterialTypes.Stone,
+                    Material = 3, //maxY - curY <= 3 ? maxY - curY == 0 ? MaterialTypes.Grass : MaterialTypes.Dirt : MaterialTypes.Stone,
                     Position = (ushort)position
                 };
                 // Non-surface blocks
@@ -98,7 +98,7 @@ namespace ParadoxCraft.Generation
                     position = xz + (int)y;
                     chunk.Blocks[position] = new DataBlock()
                     {
-                        //Material = maxY - curY <= 3 ? MaterialTypes.Dirt : MaterialTypes.Stone,
+                        Material = 2, //maxY - curY <= 3 ? MaterialTypes.Dirt : MaterialTypes.Stone,
                         Position = (ushort)position
                     };
                 }

@@ -105,7 +105,7 @@ namespace ParadoxCraft.Blocks.Chunks
                 blockPos = new Vector3(position.X * Constants.ChunkSize + x, position.Y * Constants.ChunkSize + y, position.Z * Constants.ChunkSize + z);
                 sides = CalculateBlockSides(chunk, block.Position);
 
-                toAdd.Add(new GraphicalBlock(blockPos, sides));
+                toAdd.Add(new GraphicalBlock(blockPos, sides, block.Material));
             }
 
             CheckLeftChunk(position, chunk, toAdd);
@@ -172,12 +172,12 @@ namespace ParadoxCraft.Blocks.Chunks
                 if (chunk.HasBlock(left) && !leftChunk.HasBlock(right))
                 {
                     var blockPos = new Vector3(chunkPos.X * Constants.ChunkSize + 0x0, chunkPos.Y * Constants.ChunkSize + y, chunkPos.Z * Constants.ChunkSize + z);
-                    toAdd.Add(new GraphicalBlock(blockPos, BlockSides.Left));
+                    toAdd.Add(new GraphicalBlock(blockPos, BlockSides.Left, chunk.Blocks[left].Material));
                 }
                 else if (!chunk.HasBlock(left) && leftChunk.HasBlock(right))
                 {
                     var blockPos = new Vector3(leftPos.X * Constants.ChunkSize + 0xF, leftPos.Y * Constants.ChunkSize + y, leftPos.Z * Constants.ChunkSize + z);
-                    toAdd.Add(new GraphicalBlock(blockPos, BlockSides.Right));
+                    toAdd.Add(new GraphicalBlock(blockPos, BlockSides.Right, leftChunk.Blocks[right].Material));
                 }
             }
         }
@@ -204,12 +204,12 @@ namespace ParadoxCraft.Blocks.Chunks
                 if (chunk.HasBlock(right) && !rightChunk.HasBlock(left))
                 {
                     var blockPos = new Vector3(chunkPos.X * Constants.ChunkSize + 0xF, chunkPos.Y * Constants.ChunkSize + y, chunkPos.Z * Constants.ChunkSize + z);
-                    toAdd.Add(new GraphicalBlock(blockPos, BlockSides.Right));
+                    toAdd.Add(new GraphicalBlock(blockPos, BlockSides.Right, chunk.Blocks[right].Material));
                 }
                 else if (!chunk.HasBlock(right) && rightChunk.HasBlock(left))
                 {
                     var blockPos = new Vector3(rightPos.X * Constants.ChunkSize + 0x0, rightPos.Y * Constants.ChunkSize + y, rightPos.Z * Constants.ChunkSize + z);
-                    toAdd.Add(new GraphicalBlock(blockPos, BlockSides.Left));
+                    toAdd.Add(new GraphicalBlock(blockPos, BlockSides.Left, rightChunk.Blocks[left].Material));
                 }
             }
         }
@@ -235,12 +235,12 @@ namespace ParadoxCraft.Blocks.Chunks
                 if (chunk.HasBlock(front) && !frontChunk.HasBlock(back))
                 {
                     var blockPos = new Vector3(chunkPos.X * Constants.ChunkSize + x, chunkPos.Y * Constants.ChunkSize + y, chunkPos.Z * Constants.ChunkSize + 0xF);
-                    toAdd.Add(new GraphicalBlock(blockPos, BlockSides.Front));
+                    toAdd.Add(new GraphicalBlock(blockPos, BlockSides.Front, chunk.Blocks[front].Material));
                 }
                 else if (!chunk.HasBlock(front) && frontChunk.HasBlock(back))
                 {
                     var blockPos = new Vector3(frontPos.X * Constants.ChunkSize + x, frontPos.Y * Constants.ChunkSize + y, frontPos.Z * Constants.ChunkSize + 0x0);
-                    toAdd.Add(new GraphicalBlock(blockPos, BlockSides.Back));
+                    toAdd.Add(new GraphicalBlock(blockPos, BlockSides.Back, frontChunk.Blocks[back].Material));
                 }
             }
         }
@@ -266,12 +266,12 @@ namespace ParadoxCraft.Blocks.Chunks
                 if (chunk.HasBlock(back) && !backChunk.HasBlock(front)) 
                 {
                     var blockPos = new Vector3(chunkPos.X * Constants.ChunkSize + x, chunkPos.Y * Constants.ChunkSize + y, chunkPos.Z * Constants.ChunkSize + 0x0);
-                    toAdd.Add(new GraphicalBlock(blockPos, BlockSides.Back));
+                    toAdd.Add(new GraphicalBlock(blockPos, BlockSides.Back, chunk.Blocks[back].Material));
                 }
                 else if (!chunk.HasBlock(back) && backChunk.HasBlock(front))
                 {
                     var blockPos = new Vector3(backPos.X * Constants.ChunkSize + x, backPos.Y * Constants.ChunkSize + y, backPos.Z * Constants.ChunkSize + 0xF);
-                    toAdd.Add(new GraphicalBlock(blockPos, BlockSides.Front));
+                    toAdd.Add(new GraphicalBlock(blockPos, BlockSides.Front, backChunk.Blocks[front].Material));
                 }
             }
         }
@@ -297,12 +297,12 @@ namespace ParadoxCraft.Blocks.Chunks
                 if (chunk.HasBlock(top) && !topChunk.HasBlock(bottom))
                 {
                     var blockPos = new Vector3(chunkPos.X * Constants.ChunkSize + x, chunkPos.Y * Constants.ChunkSize + 0xF, chunkPos.Z * Constants.ChunkSize + z);
-                    toAdd.Add(new GraphicalBlock(blockPos, BlockSides.Top));
+                    toAdd.Add(new GraphicalBlock(blockPos, BlockSides.Top, chunk.Blocks[top].Material));
                 }
                 else if (!chunk.HasBlock(top) && topChunk.HasBlock(bottom))
                 {
                     var blockPos = new Vector3(topPos.X * Constants.ChunkSize + x, topPos.Y * Constants.ChunkSize + 0x0, topPos.Z * Constants.ChunkSize + z);
-                    toAdd.Add(new GraphicalBlock(blockPos, BlockSides.Bottom));
+                    toAdd.Add(new GraphicalBlock(blockPos, BlockSides.Bottom, topChunk.Blocks[bottom].Material));
                 }
             }
         }
@@ -328,12 +328,12 @@ namespace ParadoxCraft.Blocks.Chunks
                 if (chunk.HasBlock(bottom) && !bottomChunk.HasBlock(top))
                 {
                     var blockPos = new Vector3(chunkPos.X * Constants.ChunkSize + x, chunkPos.Y * Constants.ChunkSize + 0x0, chunkPos.Z * Constants.ChunkSize + z);
-                    toAdd.Add(new GraphicalBlock(blockPos, BlockSides.Bottom));
+                    toAdd.Add(new GraphicalBlock(blockPos, BlockSides.Bottom, chunk.Blocks[bottom].Material));
                 }
                 else if (!chunk.HasBlock(bottom) && bottomChunk.HasBlock(top))
                 {
                     var blockPos = new Vector3(bottomPos.X * Constants.ChunkSize + x, bottomPos.Y * Constants.ChunkSize + 0xF, bottomPos.Z * Constants.ChunkSize + z);
-                    toAdd.Add(new GraphicalBlock(blockPos, BlockSides.Top));
+                    toAdd.Add(new GraphicalBlock(blockPos, BlockSides.Top, bottomChunk.Blocks[top].Material));
                 }
             }
         }
