@@ -11,15 +11,16 @@ namespace ParadoxCraft
 {
     public static class InputManagerExtensions
     {
-        public static void ResetMousePosition(this InputManager inputManager)
+        public static bool ResetMousePosition(this InputManager inputManager)
         {
             Size2 clientSize = inputManager.Game.Window.ClientBounds.Size;
             IntPtr gamehandle = (inputManager.Game.Window.NativeWindow.NativeHandle as dynamic).Handle;
             IntPtr activehandle = GetActiveWindow();
-            if (activehandle != gamehandle) return;
+            if (activehandle != gamehandle) return false;
             Point point = new Point(clientSize.Width / 2, clientSize.Height / 2);
             ClientToScreen(activehandle, ref point);
             SetCursorPos(point.X, point.Y);
+            return true;
         }
 
         [DllImport("user32.dll", EntryPoint = "SetCursorPos")]

@@ -173,9 +173,8 @@ namespace ParadoxCraft
                 dragX += (Input.MousePosition.X - .5f) * .3f;
                 dragY += (Input.MousePosition.Y - .5f) * .3f;
 
-                PlayerMovement.YawPitch(dragX, dragY);
-
-                Input.ResetMousePosition();
+                if (Input.ResetMousePosition())
+                    PlayerMovement.YawPitch(dragX, dragY);                
             }
         }
 
