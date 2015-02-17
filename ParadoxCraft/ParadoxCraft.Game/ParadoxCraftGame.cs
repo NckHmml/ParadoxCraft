@@ -71,15 +71,15 @@ namespace ParadoxCraft
             await base.LoadContent();
 
             // Create pipeline
-            RenderPipelineLightingFactory.CreateDefaultForward(this, "ParadoxCraftEffectMain", Color.DarkBlue, false, false);
+            RenderPipelineLightingFactory.CreateDefaultDeferred(this, "ParadoxCraftEffectMain", "ParadoxCraftPrepassEffect", Color.DarkBlue, false, false);
 
             // Wireframe mode
             if (isWireframe)
                 GraphicsDevice.Parameters.Set(Effect.RasterizerStateKey, RasterizerState.New(GraphicsDevice, new RasterizerStateDescription(CullMode.None) { FillMode = FillMode.Wireframe }));
 
             // Lights
-            Entities.Add(CreateDirectLight(new Vector3(-1, .9f, 1), new Color3(1, 1, 1), 0.25f));
-            Entities.Add(CreateDirectLight(new Vector3(1, -.9f, -1), new Color3(1, 1, 1), 0.25f));
+            Entities.Add(CreateDirectLight(new Vector3(-1, -1, -1), new Color3(1, 1, 1), 0.25f));
+            Entities.Add(CreateDirectLight(new Vector3(1, 1, 1), new Color3(1, 1, 1), 0.25f));
             Entities.Add(CreateDirectLight(new Vector3(1, .5f, 1), new Color3(1, 1, 1), 0.25f));
 
             // Entities
@@ -244,7 +244,7 @@ namespace ParadoxCraft
 
         #region Lights
         /// <summary>
-        /// Creates a light entity based on the forward lightning example
+        /// Creates a light entity based on the deferred lightning example
         /// </summary>
         /// <param name="direction">Light direction</param>
         /// <param name="color">Light color</param>
@@ -258,7 +258,7 @@ namespace ParadoxCraft
                 {
                     Type = LightType.Directional,
                     Color = color,
-                    Deferred = false,
+                    Deferred = true,
                     Enabled = true,
                     Intensity = intensity,
                     LightDirection = direction,
@@ -269,7 +269,7 @@ namespace ParadoxCraft
                     ShadowMapMaxSize = 1024,
                     ShadowMapMinSize = 512,
                     ShadowMapCascadeCount = 4,
-                    ShadowMapFilterType = ShadowMapFilterType.Variance,
+                    ShadowMapFilterType = ShadowMapFilterType.PercentageCloserFiltering,
                     BleedingFactor = 0,
                     MinVariance = 0
                 }

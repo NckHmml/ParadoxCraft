@@ -19,11 +19,28 @@ namespace ParadoxCraft.Effects
 {
     internal static partial class ShaderMixins
     {
+        internal partial class ParadoxCraftPrepassEffect  : IShaderMixinBuilder
+        {
+            public void Generate(ShaderMixinSourceTree mixin, ShaderMixinContext context)
+            {
+                context.Mixin(mixin, "ParadoxDefaultLightPrepassEffect");
+            }
+
+            [ModuleInitializer]
+            internal static void __Initialize__()
+
+            {
+                ShaderMixinManager.Register("ParadoxCraftPrepassEffect", new ParadoxCraftPrepassEffect());
+            }
+        }
+    }
+    internal static partial class ShaderMixins
+    {
         internal partial class ParadoxCraftEffectMain  : IShaderMixinBuilder
         {
             public void Generate(ShaderMixinSourceTree mixin, ShaderMixinContext context)
             {
-                context.Mixin(mixin, "ParadoxDefaultForwardShader");
+                context.Mixin(mixin, "ParadoxDefaultDeferredShader");
             }
 
             [ModuleInitializer]

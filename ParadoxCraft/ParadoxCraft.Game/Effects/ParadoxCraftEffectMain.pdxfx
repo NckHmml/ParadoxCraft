@@ -2,8 +2,13 @@
 
 namespace ParadoxCraft.Effects
 {
+    shader ParadoxCraftPrepassEffect
+    {
+        mixin ParadoxDefaultLightPrepassEffect;
+    };
+
 	shader ParadoxCraftEffectMain
 	{
-        mixin ParadoxDefaultForwardShader;
+        mixin ParadoxDefaultDeferredShader;
 	};
 }

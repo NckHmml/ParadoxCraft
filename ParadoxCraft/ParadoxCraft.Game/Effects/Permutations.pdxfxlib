@@ -9,9 +9,20 @@ Permutations:
                 Effect.Name: ParadoxCraftEffectMain
                 MaterialAsset.UseParameters: true
                 Mesh.UseParameters: true
+                RenderingParameters.UseDeferred: true
+            Children: []
+        -   Keys:
+                Effect.Name: ParadoxCraftPrepassEffect
                 ShadowMapParameters.FilterType:
                     - !ShadowMapFilterType Nearest
+                    - !ShadowMapFilterType PercentageCloserFiltering
                     - !ShadowMapFilterType Variance
+                ShadowMapParameters.LightType:
+                    - !LightType Directional
+                    - !LightType Spot
+                ShadowMapParameters.ShadowMapCascadeCount: !fxparam.range
+                    From: 1
+                    To: 4
             Children: []
         -   Keys:
                 Effect.Name: HorizontalVsmBlur
