@@ -22,5 +22,10 @@ namespace ParadoxCraft
         /// Chunk drawing radius
         /// </summary>
         public const byte DrawRadius = 15;
+
+        /// <summary>
+        /// Time of a day/night cycle in seconds
+        /// </summary>
+        public const int DayNightCycle = 10 * 60;
     }
 }
