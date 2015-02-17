@@ -72,6 +72,8 @@ namespace ParadoxCraft
         {
             await base.LoadContent();
 
+            IsMouseVisible = false;
+
             // Create pipeline
             RenderPipelineLightingFactory.CreateDefaultDeferred(this, "ParadoxCraftEffectMain", "ParadoxCraftPrepassEffect", Color.DarkBlue, false, false);
 
@@ -135,10 +137,11 @@ namespace ParadoxCraft
             float dragX = 0f,
                   dragY = 0f;
             double time = UpdateTime.Total.TotalSeconds;
+            Input.ResetMousePosition();
             while (IsRunning)
             {
                 await Script.NextFrame();
-
+                
                 //Else the player slows down on a lower framerate
                 var diff = UpdateTime.Total.TotalSeconds - time;
                 time = UpdateTime.Total.TotalSeconds;
@@ -164,14 +167,15 @@ namespace ParadoxCraft
                 PlayerMovement.Move(diff);
 
                 //Move the 'camera'
-                dragX = 0.95f * dragX;
-                dragY = 0.95f * dragY;
-                if (Input.PointerEvents.Count > 0)
-                {
-                    dragX = Input.PointerEvents.Sum(x => x.DeltaPosition.X);
-                    dragY = Input.PointerEvents.Sum(x => x.DeltaPosition.Y);
-                    PlayerMovement.YawPitch(dragX, dragY);
-                }
+                dragX *= .01f;
+                dragY *= .01f;
+
+                dragX += (Input.MousePosition.X - .5f) * .3f;
+                dragY += (Input.MousePosition.Y - .5f) * .3f;
+
+                PlayerMovement.YawPitch(dragX, dragY);
+
+                Input.ResetMousePosition();
             }
         }
 

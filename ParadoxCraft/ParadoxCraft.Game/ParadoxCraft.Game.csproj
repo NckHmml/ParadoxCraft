@@ -97,6 +97,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>VertexTextureTerrain.pdxsl</DependentUpon>
     </Compile>
+    <Compile Include="Helpers\Extensions\InputManagerExtensions.cs" />
     <Compile Include="Helpers\Point3.cs" />
     <Compile Include="Movement.cs" />
     <Compile Include="Terrain\GraphicalTerrain.cs" />
