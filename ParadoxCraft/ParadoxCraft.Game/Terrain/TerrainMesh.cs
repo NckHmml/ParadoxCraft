@@ -42,13 +42,7 @@ namespace ParadoxCraft.Terrain
         /// <summary>
         /// Numbers of blocks in the buffer
         /// </summary>
-        public int BlockCount
-        {
-            get
-            {
-                return Blocks.Count;
-            }
-        }
+        public int BlockCount { get; private set; }
 
         /// <summary>
         /// Resulting Mesh for this instance
@@ -103,6 +97,7 @@ namespace ParadoxCraft.Terrain
                 else
                     blocks.AddRange(toAdd);
             }
+            BlockCount = Blocks.Count;
             PendingChanges = true;
         }
 
@@ -127,8 +122,13 @@ namespace ParadoxCraft.Terrain
                 Blocks.Remove(chunk);
                 yield return chunk;
             }
+
+            if (AllChunks.Count > 0)
+            {
+                PendingChanges = true;
+                BlockCount = Blocks.Count;
+            }
             AllChunks.Clear();
-            PendingChanges = true;
         }
 
         /// <summary>

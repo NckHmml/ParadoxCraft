@@ -66,10 +66,9 @@ namespace ParadoxCraft.Terrain
         /// </remarks>
         public void AddBlocks(Point3 chunkPos, List<GraphicalBlock> toAdd)
         {
-            int index = chunkPos.X % Meshes.Count;
-            if (index < 0)
-                index *= -1;
-            Meshes[index].AddBlocks(chunkPos, toAdd);
+            Meshes
+                .Aggregate((left, right) => left.BlockCount < right.BlockCount ? left : right)
+                .AddBlocks(chunkPos, toAdd);
         }
 
         /// <summary>
