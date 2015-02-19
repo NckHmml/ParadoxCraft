@@ -34,14 +34,17 @@ namespace ParadoxCraft
         /// <summary>
         /// Bool to switch to deferred mode
         /// </summary>
-        private bool isDeferred = true;
+        private bool isDeferred = false;
 
         /// <summary>
         /// Player camera entity
         /// </summary>
         private Entity Camera { get; set; }
 
-        private Entity DirectionalLight { get; set; }
+        /// <summary>
+        /// Sun light and global light container
+        /// </summary>
+        private List<Entity> DirectionalLights { get; set; }
 
         /// <summary>
         /// Terrain entity
@@ -72,7 +75,8 @@ namespace ParadoxCraft
         {
             // Target 11.0 profile by default
             GraphicsDeviceManager.PreferredGraphicsProfile = new[] { GraphicsProfile.Level_11_0 };
-            
+
+            DirectionalLights = new List<Entity>();
             Factory = new ChunkFactory();
         }
 
@@ -108,10 +112,10 @@ namespace ParadoxCraft
                 GraphicsDevice.Parameters.Set(Effect.RasterizerStateKey, RasterizerState.New(GraphicsDevice, new RasterizerStateDescription(CullMode.None) { FillMode = FillMode.Wireframe }));
 
             // Lights
-            Entities.Add(CreateDirectLight(new Vector3(-1, -1, -1), new Color3(1, 1, 1), .25f));
-            Entities.Add(CreateDirectLight(new Vector3(1, 1, 1), new Color3(1, 1, 1), .25f));
-            DirectionalLight = CreateDirectLight(Vector3.Zero, new Color3(0), .3f);
-            Entities.Add(DirectionalLight);
+            DirectionalLights.Add(CreateDirectLight(Vector3.Zero, new Color3(0), .5f));
+            DirectionalLights.Add(CreateDirectLight(new Vector3(-1, -1, -1), new Color3(1, 1, 1), .2f));
+            DirectionalLights.Add(CreateDirectLight(new Vector3(1, 1, 1), new Color3(1, 1, 1), .2f));
+            Entities.Add(DirectionalLights.ToArray());
 
             // Entities
             LoadTerrain();
@@ -280,18 +284,24 @@ namespace ParadoxCraft
                 await Task.Delay(100);
             }
         }
-
+        float realAngle;
         /// <summary>
         /// Script for the "Day/Night Cycle" 
         /// </summary>
         private async Task LightCycleScript()
         {
-            var light = DirectionalLight.Get<LightComponent>();
-            float lightIntensity = light.Intensity;
+            LightComponent 
+                light1 = DirectionalLights[1].Get<LightComponent>(),
+                light2 = DirectionalLights[2].Get<LightComponent>(),
+                sunlight = DirectionalLights[0].Get<LightComponent>();
+            float
+                sunlightIntensity = sunlight.Intensity,
+                lightIntensity = light1.Intensity,
+                intensityPercentage = 1f;
             double time;
             while (IsRunning)
             {
-                await Task.Delay(500);
+                await Task.Delay(100);
                 time = UpdateTime.Total.TotalSeconds;
                 float curAngle = (float)time / (Constants.DayNightCycle / 360f);
                 float angle = curAngle / Constants.Degrees90 / 90;
@@ -300,19 +310,27 @@ namespace ParadoxCraft
                 if (angle < 0 || angle > Constants.Degrees90 * 2)
                 {
                     //Night
-                    light.Intensity = 0;
+                    sunlight.Intensity = 0;
                 }
                 else
                 {
+                    realAngle = angle * (180 / (float)Math.PI);
+                    if (realAngle < 20)
+                        intensityPercentage = realAngle * .05f;
+                    if (realAngle > 160)
+                        intensityPercentage = (180 - realAngle) * .05f;
+
                     //Day
-                    light.Intensity = lightIntensity;
+                    sunlight.Intensity = sunlightIntensity * intensityPercentage;
+                    light1.Intensity = lightIntensity + (.1f * intensityPercentage);
+                    light2.Intensity = lightIntensity + (.1f * intensityPercentage);
                     float height = (float)Math.Sin(angle);
                     float width = (float)Math.Cos(angle);
 
-                    light.LightDirection = new Vector3(-width, -height, .8f);
+                    sunlight.LightDirection = new Vector3(-width, -height, .8f);
                     if (height < 0)
                         height *= -1;
-                    light.Color = new Color3(.9f, .4f + (.4f * height), height * .8f);
+                    sunlight.Color = new Color3(1f, .4f + (.6f * height), .2f + height * .8f);
                 }
             }
         }
