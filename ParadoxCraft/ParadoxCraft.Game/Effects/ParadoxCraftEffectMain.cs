@@ -51,4 +51,21 @@ namespace ParadoxCraft.Effects
             }
         }
     }
+    internal static partial class ShaderMixins
+    {
+        internal partial class ParadoxCraftEffectForward  : IShaderMixinBuilder
+        {
+            public void Generate(ShaderMixinSourceTree mixin, ShaderMixinContext context)
+            {
+                context.Mixin(mixin, "ParadoxDefaultForwardShader");
+            }
+
+            [ModuleInitializer]
+            internal static void __Initialize__()
+
+            {
+                ShaderMixinManager.Register("ParadoxCraftEffectForward", new ParadoxCraftEffectForward());
+            }
+        }
+    }
 }

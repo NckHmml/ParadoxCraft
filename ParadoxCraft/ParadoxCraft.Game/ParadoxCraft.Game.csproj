@@ -85,6 +85,7 @@
     <Compile Include="Blocks\DataBlock.cs" />
     <Compile Include="Blocks\GraphicalBlock.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="Helpers\PrimitiveRender.cs" />
     <Compile Include="Effects\ParadoxCraftEffectMain.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

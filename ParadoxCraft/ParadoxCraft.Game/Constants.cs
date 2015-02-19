@@ -26,6 +26,6 @@ namespace ParadoxCraft
         /// <summary>
         /// Time of a day/night cycle in seconds
         /// </summary>
-        public const int DayNightCycle = 10 * 60;
+        public const int DayNightCycle = 1 * 60;
     }
 }

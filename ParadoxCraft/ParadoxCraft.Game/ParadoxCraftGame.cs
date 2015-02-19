@@ -16,6 +16,7 @@ using System.Text;
 using System.Threading.Tasks;
 using SiliconStudio.Paradox.DataModel;
 using ParadoxCraft.Blocks.Chunks;
+using ParadoxCraft.Helpers;
 
 namespace ParadoxCraft
 {
@@ -29,6 +30,11 @@ namespace ParadoxCraft
         /// Bool to switch wireframe mode
         /// </summary>
         private bool isWireframe = false;
+
+        /// <summary>
+        /// Bool to switch to deferred mode
+        /// </summary>
+        private bool isDeferred = true;
 
         /// <summary>
         /// Player camera entity
@@ -51,6 +57,11 @@ namespace ParadoxCraft
         /// Chunk handling factory
         /// </summary>
         public ChunkFactory Factory { get; private set; }
+
+        /// <summary>
+        /// The player its cursor
+        /// </summary>
+        public PrimitiveRender Cursor { get; set; }
         #endregion
 
         #region Initialization
@@ -61,7 +72,7 @@ namespace ParadoxCraft
         {
             // Target 11.0 profile by default
             GraphicsDeviceManager.PreferredGraphicsProfile = new[] { GraphicsProfile.Level_11_0 };
-
+            
             Factory = new ChunkFactory();
         }
 
@@ -74,9 +85,24 @@ namespace ParadoxCraft
 
             IsMouseVisible = false;
 
-            // Create pipeline
-            RenderPipelineLightingFactory.CreateDefaultDeferred(this, "ParadoxCraftEffectMain", "ParadoxCraftPrepassEffect", Color.DarkBlue, false, false);
+            // Initialize the cursor
+            float res = (float)Window.ClientBounds.Width / Window.ClientBounds.Height;
+            Cursor = new PrimitiveRender
+            {
+                DrawEffect = new SimpleEffect(GraphicsDevice) { Color = Color.White },
+                Primitives = new[] {
+                    GeometricPrimitive.Plane.New(GraphicsDevice, .06f / res, .01f),
+                    GeometricPrimitive.Plane.New(GraphicsDevice, .01f / res, .06f)
+                }
+            };
 
+            // Create pipeline
+            if (isDeferred)
+                RenderPipelineLightingFactory.CreateDefaultDeferred(this, "ParadoxCraftEffectMain", "ParadoxCraftPrepassEffect", Color.DarkBlue, false, false);
+            else
+                RenderPipelineLightingFactory.CreateDefaultForward(this, "ParadoxCraftEffectForward", Color.DarkBlue, false, false);
+            RenderSystem.Pipeline.Renderers.Add(new DelegateRenderer(Services) { Render = RenderCursor });
+           
             // Wireframe mode
             if (isWireframe)
                 GraphicsDevice.Parameters.Set(Effect.RasterizerStateKey, RasterizerState.New(GraphicsDevice, new RasterizerStateDescription(CullMode.None) { FillMode = FillMode.Wireframe }));
@@ -125,7 +151,14 @@ namespace ParadoxCraft
             Terrain = new GraphicalTerrain(GraphicsDevice, Asset.Load<Material>("Materials/Terrain"));
             Factory.Terrain = Terrain;
             Entities.Add(Terrain);
-        } 
+        }
+
+        private void RenderCursor(RenderContext renderContext)
+        {
+            Cursor.DrawEffect.Apply();
+            foreach (var primitive in Cursor.Primitives)
+                primitive.Draw();
+        }
         #endregion
 
         #region Scripts
@@ -293,7 +326,7 @@ namespace ParadoxCraft
         /// <param name="color">Light color</param>
         /// <param name="intensity">Light intensity</param>
         /// <returns>The light entity</returns>
-        private static Entity CreateDirectLight(Vector3 direction, Color3 color, float intensity)
+        private Entity CreateDirectLight(Vector3 direction, Color3 color, float intensity)
         {
             return new Entity()
             {
@@ -301,7 +334,7 @@ namespace ParadoxCraft
                 {
                     Type = LightType.Directional,
                     Color = color,
-                    Deferred = true,
+                    Deferred = isDeferred,
                     Enabled = true,
                     Intensity = intensity,
                     LightDirection = direction,
