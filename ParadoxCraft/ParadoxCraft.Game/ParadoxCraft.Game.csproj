@@ -84,6 +84,7 @@
     <Compile Include="Blocks\Chunks\ChunkFactory.cs" />
     <Compile Include="Blocks\DataBlock.cs" />
     <Compile Include="Blocks\GraphicalBlock.cs" />
+    <Compile Include="Blocks\MaterialType.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Helpers\PrimitiveRender.cs" />
     <Compile Include="Effects\ParadoxCraftEffectMain.cs">

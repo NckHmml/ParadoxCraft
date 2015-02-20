@@ -106,7 +106,7 @@ namespace ParadoxCraft
             else
                 RenderPipelineLightingFactory.CreateDefaultForward(this, "ParadoxCraftEffectForward", Color.DarkBlue, false, false);
             RenderSystem.Pipeline.Renderers.Add(new DelegateRenderer(Services) { Render = RenderCursor });
-           
+
             // Wireframe mode
             if (isWireframe)
                 GraphicsDevice.Parameters.Set(Effect.RasterizerStateKey, RasterizerState.New(GraphicsDevice, new RasterizerStateDescription(CullMode.None) { FillMode = FillMode.Wireframe }));
@@ -178,7 +178,7 @@ namespace ParadoxCraft
             while (IsRunning)
             {
                 await Script.NextFrame();
-                
+
                 //Else the player slows down on a lower framerate
                 var diff = UpdateTime.Total.TotalSeconds - time;
                 time = UpdateTime.Total.TotalSeconds;
@@ -211,7 +211,7 @@ namespace ParadoxCraft
                 dragY += (Input.MousePosition.Y - .5f) * .3f;
 
                 if (Input.ResetMousePosition())
-                    PlayerMovement.YawPitch(dragX, dragY);                
+                    PlayerMovement.YawPitch(dragX, dragY);
             }
         }
 
@@ -221,7 +221,7 @@ namespace ParadoxCraft
         private async Task RenderChunksScript()
         {
             while (IsRunning)
-            {                
+            {
                 double playerX = PlayerMovement.X;
                 double playerZ = PlayerMovement.Z;
                 //playerX += StartPosition.X;
@@ -236,6 +236,11 @@ namespace ParadoxCraft
                     int z = (i - x) / Constants.DrawRadius;
 
                     if ((x * x) + (z * z) > (Constants.DrawRadius * Constants.DrawRadius)) continue;
+
+                    Factory.CheckLoad(playerX + x, -1, playerZ + z);
+                    Factory.CheckLoad(playerX - x, -1, playerZ + z);
+                    Factory.CheckLoad(playerX + x, -1, playerZ - z);
+                    Factory.CheckLoad(playerX - x, -1, playerZ - z);
 
                     Factory.CheckLoad(playerX + x, 0, playerZ + z);
                     Factory.CheckLoad(playerX - x, 0, playerZ + z);
@@ -290,7 +295,7 @@ namespace ParadoxCraft
         /// </summary>
         private async Task LightCycleScript()
         {
-            LightComponent 
+            LightComponent
                 light1 = DirectionalLights[1].Get<LightComponent>(),
                 light2 = DirectionalLights[2].Get<LightComponent>(),
                 sunlight = DirectionalLights[0].Get<LightComponent>();
@@ -368,7 +373,7 @@ namespace ParadoxCraft
                     MinVariance = 0
                 }
             };
-        } 
+        }
         #endregion
     }
 }

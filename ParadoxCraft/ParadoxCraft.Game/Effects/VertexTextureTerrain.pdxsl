@@ -12,6 +12,7 @@
     stage Texture2D Dirt;
     stage Texture2D Grass_side;
     stage Texture2D Grass_top;
+    stage Texture2D Sand;
     stage Texture2D Stone;
 
     stage stream half2 TexCoord : TEXCOORD0;
@@ -32,6 +33,8 @@
                 return Grass_side.Sample(MeshTextureSampler, streams.TexCoord);
             case 0x203: 
                 return Grass_top.Sample(MeshTextureSampler, streams.TexCoord);
+            case 0x004:
+                return Sand.Sample(MeshTextureSampler, streams.TexCoord);                
             default:
                 return 0;
         }

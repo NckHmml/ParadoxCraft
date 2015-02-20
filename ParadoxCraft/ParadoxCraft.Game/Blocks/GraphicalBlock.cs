@@ -29,11 +29,11 @@ namespace ParadoxCraft.Blocks
         /// </summary>
         /// <param name="position">Draw position</param>
         /// <param name="sides">Sides to draw</param>
-        public GraphicalBlock(Vector3 position, BlockSides sides, ushort material)
+        public GraphicalBlock(Vector3 position, BlockSides sides, MaterialType material)
         {
             Sides = sides;
             Position = position;
-            Material = material;
+            Material = (ushort)material;
         }
 
         /// <summary>

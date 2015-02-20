@@ -92,7 +92,8 @@ namespace ParadoxCraft.Generation.Mapping
         #region Helper functions
         private static int FastFloor(double x)
         {
-            return (x > 0) ? ((int)x) : (((int)x) - 1);
+            var ret = (int)x;
+            return (x > 0) ? ret : ret - 1;
         }
 
         private static double grad(int hash, double x, double y, double z)
@@ -325,10 +326,10 @@ namespace ParadoxCraft.Generation.Mapping
                 z4 = z0 - 1.0 + 4.0 * G4,
                 w4 = w0 - 1.0 + 4.0 * G4;
 
-            i &= 255;
-            j &= 255;
-            k &= 255;
-            l &= 255;
+            i &= 0xFF;
+            j &= 0xFF;
+            k &= 0xFF;
+            l &= 0xFF;
 
             int
                 gi0 = perm[i + perm[j + perm[k + perm[l]]]] % 32,

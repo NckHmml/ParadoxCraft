@@ -24,6 +24,10 @@ Material:
             TextureReference: 0a114f59-8d10-40c6-a09c-16b7b347d60a:Textures/grass_top
             Scale: {X: 1, Y: 1}
             Offset: {X: 0, Y: 0}
+        Sand: !MaterialTextureNode
+            TextureReference: 04e79f65-1114-4b8a-a438-ffb98d50e35f:Textures/sand
+            Scale: {X: 1, Y: 1}
+            Offset: {X: 0, Y: 0}
         Stone: !MaterialTextureNode
             TextureReference: 300c0d8a-dd8c-4b52-8dd8-69332cbf731e:Textures/stone
             Scale: {X: 1, Y: 1}
@@ -43,6 +47,8 @@ Material:
                     Reference: Grass_side
                 VertexTextureTerrain.Grass_top: !NodeParameterTexture
                     Reference: Grass_top
+                VertexTextureTerrain.Sand: !NodeParameterTexture
+                    Reference: Sand
                 VertexTextureTerrain.Stone: !NodeParameterTexture
                     Reference: Stone
             IsReducible: false

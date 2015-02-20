@@ -24,6 +24,7 @@ namespace SiliconStudio.Paradox.Effects
         public static readonly ParameterKey<Texture> Dirt = ParameterKeys.New<Texture>();
         public static readonly ParameterKey<Texture> Grass_side = ParameterKeys.New<Texture>();
         public static readonly ParameterKey<Texture> Grass_top = ParameterKeys.New<Texture>();
+        public static readonly ParameterKey<Texture> Sand = ParameterKeys.New<Texture>();
         public static readonly ParameterKey<Texture> Stone = ParameterKeys.New<Texture>();
     }
 }
