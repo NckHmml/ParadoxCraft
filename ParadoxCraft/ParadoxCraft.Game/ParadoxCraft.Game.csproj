@@ -76,9 +76,6 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <!-- A reference to the entire .NET Framework is automatically included -->
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="Blocks\BlockSides.cs" />
     <Compile Include="Blocks\Chunks\DataChunk.cs" />
     <Compile Include="Blocks\Chunks\ChunkFactory.cs" />

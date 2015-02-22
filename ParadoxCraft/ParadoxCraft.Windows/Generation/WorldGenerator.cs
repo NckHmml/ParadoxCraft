@@ -33,6 +33,8 @@ namespace ParadoxCraft.Generation
         /// </summary>
         private SeededNoise TerrainRangeGenerator { get; set; }
 
+        private SeededNoise TreeGenerator { get; set; }
+
         /// <summary>
         /// Creates a new instance of <see cref="WorldGenerator"/>
         /// </summary>
@@ -42,6 +44,8 @@ namespace ParadoxCraft.Generation
             HeightRoughner = new SeededNoise(seed, 20);
             HeightGenerator = new SeededNoise(seed, 100);
             TerrainRangeGenerator = new SeededNoise(seed, 1000);
+
+            TreeGenerator = new SeededNoise(seed, 1);
         }
 
         /// <summary>
@@ -56,7 +60,7 @@ namespace ParadoxCraft.Generation
         private void GenerateSurface(ref DataChunk chunk, Point3 pos)
         {
             int x, z, position, maxY, curY;
-            double y, fX, terrainRange;
+            double y, fX, terrainRange, treeChance;
             for (ushort xz = 0; xz < 16 * 16; xz++)
             {
                 x = (xz & 0x00F);
@@ -105,11 +109,34 @@ namespace ParadoxCraft.Generation
 
                     // Surface block
                     curY = (int)(pos.Y * 0x10 + y / 0x100);
-                    chunk.Blocks[position] = new DataBlock()
+
+                    if (maxY - curY == 0)
                     {
-                        Material = MaterialType.Grass,
-                        Position = (ushort)position
-                    };
+                        if (SurfaceEnd == pos.Y)
+                        {
+                            treeChance = 0;
+                        }
+                        else
+                        {
+                            treeChance = TreeGenerator.Generate(x, z);
+                            treeChance *= Math.Round((terrainRange - .5) * 40 > 1 ? 1 : (terrainRange - .5) * 40, 1);
+                            treeChance = Math.Round(treeChance, 1);
+                        }
+                        chunk.Blocks[position] = new DataBlock()
+                        {
+                            Material = treeChance < 1 ? MaterialType.Grass : MaterialType.Stone,
+                            Position = (ushort)position
+                        };
+                    }
+                    else
+                    {
+                        chunk.Blocks[position] = new DataBlock()
+                        {
+                            Material = maxY - curY <= 3 ? MaterialType.Dirt : MaterialType.Stone,
+                            Position = (ushort)position
+                        };
+                    }
+
                     // Non-surface blocks
                     while (y >= 0x100)
                     {
@@ -118,7 +145,7 @@ namespace ParadoxCraft.Generation
                         position = xz + (int)y;
                         chunk.Blocks[position] = new DataBlock()
                         {
-                            Material = MaterialType.Dirt,
+                            Material = maxY - curY <= 3 ? MaterialType.Dirt : MaterialType.Stone,
                             Position = (ushort)position
                         };
                     }
@@ -131,7 +158,7 @@ namespace ParadoxCraft.Generation
                     y *= 1 - (.5 - terrainRange) * 40;
 
                     // Apply the min height (which is basically the max height for beaches)
-                    y *= MinSurfaceHeight;
+                    y *= MinSurfaceHeight + 1;
 
                     // Round it and apply chunk height
                     y = Math.Ceiling(y);
