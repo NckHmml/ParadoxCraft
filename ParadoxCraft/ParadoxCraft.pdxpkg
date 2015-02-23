@@ -29,7 +29,7 @@ Profiles:
             -   Id: 10242cd2-7c03-4132-a199-eae16a0d71dc
                 Location: ParadoxCraft.Game/ParadoxCraft.Game.csproj
                 Type: Library
-            -   Id: 813702f0-416d-4f45-91a9-bbcdbf6bea21
+            -   Id: bb2b365e-d4ef-424b-8197-d542aeb98e34
                 Location: ParadoxCraft.Atmosphere/ParadoxCraft.Atmosphere.csproj
                 Type: Library
     -   Name: Windows
