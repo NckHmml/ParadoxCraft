@@ -58,6 +58,7 @@ namespace ParadoxCraft.Effects
             public void Generate(ShaderMixinSourceTree mixin, ShaderMixinContext context)
             {
                 context.Mixin(mixin, "ParadoxDefaultForwardShader");
+                context.Mixin(mixin, "FogEffect");
             }
 
             [ModuleInitializer]

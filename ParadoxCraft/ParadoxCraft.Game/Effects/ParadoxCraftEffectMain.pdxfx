@@ -15,5 +15,6 @@ namespace ParadoxCraft.Effects
 	shader ParadoxCraftEffectForward
 	{
         mixin ParadoxDefaultForwardShader;
+        mixin FogEffect;
 	};
 }

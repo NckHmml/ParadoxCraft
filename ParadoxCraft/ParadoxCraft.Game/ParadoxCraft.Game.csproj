@@ -83,6 +83,12 @@
     <Compile Include="Blocks\GraphicalBlock.cs" />
     <Compile Include="Blocks\MaterialType.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="Effects\FogEffect.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>FogEffect.pdxsl</DependentUpon>
+    </Compile>
     <Compile Include="Helpers\PrimitiveRender.cs" />
     <Compile Include="Effects\ParadoxCraftEffectMain.cs">
       <AutoGen>True</AutoGen>
@@ -102,6 +108,10 @@
     <Compile Include="Terrain\GraphicalTerrain.cs" />
     <Compile Include="Terrain\TerrainMesh.cs" />
     <Compile Include="Terrain\VertexTerrain.cs" />
+    <None Include="Effects\FogEffect.pdxsl">
+      <Generator>ParadoxShaderKeyGenerator</Generator>
+      <LastGenOutput>FogEffect.cs</LastGenOutput>
+    </None>
     <None Include="Effects\Permutations.pdxfxlib" />
     <None Include="Effects\ParadoxCraftEffectMain.pdxfx">
       <Generator>ParadoxShaderKeyGenerator</Generator>

@@ -1,0 +1,32 @@
+﻿// Simple fog emulating fixed pipeline as described in http://www.ozone3d.net/tutorials/glsl_fog/p03.php
+class FogEffect : ShadingBase, TransformationBase, Camera
+{
+    // Color of the fog
+    [Color]
+    stage float4 FogColor = float4(0,0,0,0);
+
+    // Varying FogFactor calculated from VS and passed to PS
+    stage stream float FogFactor : FOG;
+
+    stage float fogNearPlaneZ = 75.0f;
+    stage float fogFarPlaneZ = 275.0f;
+
+    stage float fogNearPlaneY = 0.0f;
+    stage float fogFarPlaneY = 20000.0f;
+        
+    stage override void PostTransformPosition()
+    {
+        base.PostTransformPosition();
+
+        float depthFactor = max ( (fogFarPlaneZ - streams.ShadingPosition.w ) / (fogFarPlaneZ - fogNearPlaneZ), 0.0);
+        float heightFactor = max ( (streams.ShadingPosition.y - fogFarPlaneY) / ( fogFarPlaneY - fogNearPlaneY), 0.0);
+        streams.FogFactor = saturate( depthFactor + heightFactor );
+    }
+    
+    stage override float4 Shading() 
+    {
+        float4 normalShade = base.Shading();
+
+        return lerp(FogColor, normalShade, streams.FogFactor);
+    }
+};

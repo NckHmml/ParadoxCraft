@@ -101,6 +101,10 @@ namespace ParadoxCraft
             // Hides the mouse
             IsMouseVisible = false;
 
+            // Set fog values
+            GraphicsDevice.Parameters.Set(FogEffectKeys.fogNearPlaneZ, 100f);
+            GraphicsDevice.Parameters.Set(FogEffectKeys.fogFarPlaneZ, 160f);
+
             // Create the Atmosphere lighting
             Atmosphere = AtmosphereBuilder.Generate(GraphicsDevice, EffectSystem);
             CreateSunLight();
