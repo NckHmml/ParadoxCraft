@@ -1,0 +1,28 @@
+﻿class AtmospherePrecomputation : Atmosphere
+{
+    Texture2D DeltaE;
+    Texture3D DeltaJ;
+    Texture3D DeltaSR;
+    Texture3D DeltaSM;
+
+    bool IsFirst;
+
+    float IntersectAtmosphere(float altitude, float viewZenith)
+    {
+        float altitudeSquared = altitude * altitude;
+        float viewZenithSquared = viewZenith * viewZenith;
+
+        float dout = -altitude * viewZenith + sqrt(altitudeSquared * (viewZenithSquared - 1.0) + HeightLimit * HeightLimit);
+        float delta2 = altitudeSquared * (viewZenithSquared - 1.0) + GroundHeight * GroundHeight;
+
+        if (delta2 >= 0.0)
+        {
+            float din = -altitude * viewZenith - sqrt(delta2);
+            if (din >= 0.0)
+            {
+                dout = min(dout, din);
+            }
+        }
+        return dout;
+    }
+};

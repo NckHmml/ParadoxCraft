@@ -1,0 +1,57 @@
+﻿#define INSCATTER_INTEGRAL_SAMPLES 50
+
+class SingleInscatter : InscatterBase
+{
+    override float4 Compute(float altitude, float viewZenithAngle, float sunZenithAngle, float viewSunAngle)
+    {
+        //return float4(streams.TexCoord, streams.TexCoordZ, 1);
+
+        float3 rayleigh = 0;
+        float3 mie = 0;
+
+        float dx = IntersectAtmosphere(altitude, viewZenithAngle) / INSCATTER_INTEGRAL_SAMPLES;
+
+        float x0 = 0.0;
+        float3 r0, m0;
+        Integrand(altitude, viewZenithAngle, sunZenithAngle, viewSunAngle, 0.0f, r0, m0);
+
+        for (int i = 1; i <= INSCATTER_INTEGRAL_SAMPLES; i++)
+        {
+            float x = dx * i;
+            float3 r, m;
+            Integrand(altitude, viewZenithAngle, sunZenithAngle, viewSunAngle, x, r, m);
+            rayleigh += (r0 + r) / 2.0f * dx;
+            mie += (m0 + m) / 2.0f * dx;
+            x0 = x;
+            r0 = r;
+            m0 = m;
+        }
+
+        rayleigh *= RayleighExtinction;
+        mie *= MieScattering;
+
+        streams.ColorTarget1 = float4(mie, 1);
+        return float4(rayleigh, 1);
+    }
+
+    // distance - sample  point to ray origin
+    void Integrand(float altitude, float viewZenithAngle, float sunZenithAngle, float viewSunAngle, float distance, out float3 rayleigh, out float3 mie)
+    {
+        rayleigh = mie = 0;
+
+        float sampleAltitude = sqrt(altitude * altitude + distance * distance + 2.0 * altitude * viewZenithAngle * distance);
+        float sampleSunZenithAngle = (viewSunAngle * distance + sunZenithAngle * altitude) / sampleAltitude;
+
+        sampleAltitude = max(GroundHeight, sampleAltitude);
+
+        // if angle between zenith and sun smaller than angle to horizon 
+        // return ray and mie values 
+        if (sampleSunZenithAngle >= -sqrt(1.0f - GroundHeight * GroundHeight / (sampleAltitude * sampleAltitude)))
+        {
+            float3 transmittance = GetTransmittance(altitude, viewZenithAngle, distance) * GetTransmittance(sampleAltitude, sampleSunZenithAngle);
+        
+            rayleigh = exp(-(sampleAltitude - GroundHeight) / RayleighScaleHeight) * transmittance;
+            mie = exp(-(sampleAltitude - GroundHeight) / MieScaleHeight) * transmittance;
+        }
+    }
+};

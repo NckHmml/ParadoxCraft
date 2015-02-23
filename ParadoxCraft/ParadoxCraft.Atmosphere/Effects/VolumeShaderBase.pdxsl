@@ -1,0 +1,49 @@
+﻿class VolumeShaderBase : ImageShaderBase
+{
+    stage stream uint RenderTargetArrayIndex : SV_RenderTargetArrayIndex;
+    stage stream float TexCoordZ;
+    stage stream uint Slice;
+
+    uint SliceCount;
+
+    uint CalculateSlice(uint instanceID)
+    {
+        return instanceID;
+    }
+
+    void ProcessSlice()
+    {
+    }
+
+    void ProcessVertex(uint index)
+    {
+    }
+
+    [maxvertexcount(3)]
+    void GSMain(triangle Input input[3], inout TriangleStream<Output> triangleStream)
+    {
+        streams.Slice = CalculateSlice(input[0].InstanceID);
+
+        streams.TexCoordZ = ((float)streams.Slice + 0.5) / SliceCount;
+
+        ProcessSlice();
+
+        for (int i = 0; i < 3; i++)
+        {
+            streams.ShadingPosition = input[i].ShadingPosition;
+            streams.TexCoord = input[i].TexCoord;
+            streams.RenderTargetArrayIndex = streams.Slice;
+
+            ProcessVertex(i);
+
+            triangleStream.Append(streams);
+        }
+        triangleStream.RestartStrip();
+    }
+
+    override stage void PSMain()
+    {
+        uint slice = streams.RenderTargetArrayIndex; // Prevent from optimizing away
+        base.PSMain();
+    } 
+};

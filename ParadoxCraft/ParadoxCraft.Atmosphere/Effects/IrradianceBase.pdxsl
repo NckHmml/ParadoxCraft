@@ -1,0 +1,20 @@
+﻿class IrradianceBase : ImageShaderBase, AtmospherePrecomputation
+{
+    override stage void PSMain()
+    {
+        float altitude, sunZenithAngle;
+        GetIrradianceParams(streams.TexCoord, altitude, sunZenithAngle);
+        streams.ColorTarget = float4(Compute(altitude, sunZenithAngle), 1);
+    }
+
+    float3 Compute(float altitude, float sunZenithAngle)
+    {
+        return 0;
+    }
+
+    void GetIrradianceParams(float2 texCoord, out float altitude, out float sunZenithAngle)
+    {
+        altitude = GroundHeight + texCoord.y * (TopHeight - GroundHeight);
+        sunZenithAngle = -0.2 + texCoord.x * (1.0 + 0.2);
+    }
+};

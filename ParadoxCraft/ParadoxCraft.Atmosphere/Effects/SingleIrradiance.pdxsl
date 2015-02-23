@@ -1,0 +1,8 @@
+﻿class SingleIrradiance : IrradianceBase
+{
+	override float3 Compute(float altitude, float sunZenithAngle)
+	{
+		float3 attenuation = GetTransmittance(altitude, sunZenithAngle);
+		return attenuation * max(sunZenithAngle, 0.0);
+	}
+};

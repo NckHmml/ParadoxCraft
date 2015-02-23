@@ -1,0 +1,86 @@
+﻿#define INSCATTER_NON_LINEAR
+
+class InscatterBase : VolumeShaderBase, AtmospherePrecomputation
+{
+    stage stream float4 Consts; // dHdh
+    stage stream float Altitude;
+
+    override void ProcessSlice()
+    {
+        uint slice = streams.Slice;
+
+        float groundSquared = GroundHeight * GroundHeight;
+        float topSquared = TopHeight * TopHeight;
+
+        float altitude = (float)slice / (AltitudeResolution - 1);
+        altitude = sqrt(groundSquared + altitude * altitude * (topSquared - groundSquared));
+        altitude += slice == 0 ? 0.01e3 : (slice == AltitudeResolution - 1 ? -0.001e3 : 0.0);
+        float altitudeSquared = altitude * altitude;
+
+        streams.TexCoordZ = ((float)slice + 0.5) / AltitudeResolution;
+        streams.Consts.x = TopHeight - altitude;
+        streams.Consts.y = sqrt(altitudeSquared - groundSquared) + sqrt(topSquared - groundSquared);
+        streams.Consts.z = altitude - GroundHeight;
+        streams.Consts.w = sqrt(altitudeSquared - groundSquared);
+        streams.Altitude = altitude;
+    }
+
+    override stage void PSMain()
+    {
+        base.PSMain();
+
+        float viewZenith, sunZenith, viewSun;
+        GetInscatterParams(streams.TexCoord, streams.Consts, streams.Altitude, viewZenith, sunZenith, viewSun);
+        streams.ColorTarget = Compute(streams.Altitude, viewZenith, sunZenith, viewSun);
+    }
+
+    float4 Compute(float altitude, float viewZenith, float sunZenith, float viewSun)
+    {
+        return 0;
+    }
+
+    void GetInscatterParams(float2 texCoord, float4 consts, float altitude, out float viewZenithAngle, out float sunZenithAngle, out float viewSunAngle)
+    {
+        float x = texCoord.x * (SunZenithResolution * ViewSunResolution) - 0.5;
+        float y = texCoord.y * ViewZenithResolution - 0.5;
+
+    #ifdef INSCATTER_NON_LINEAR
+        if (y < ViewZenithResolution / 2)
+        {
+            float d = 1.0 - y / (ViewZenithResolution / 2.0 - 1.0);
+            d = min(max(consts.z, d * consts.w), consts.w * 0.999);
+            viewZenithAngle = CosineLaw(GroundHeight, altitude, d);
+            viewZenithAngle = min(viewZenithAngle, -GetViewZenith(altitude) - 0.001);
+        }
+        else
+        {
+            float d = (y - ViewZenithResolution / 2.0) / (ViewZenithResolution / 2.0 - 1.0);
+            d = min(max(consts.x, d * consts.y), consts.y * 0.999);
+            viewZenithAngle = CosineLaw(TopHeight, altitude, d);
+        }
+
+        sunZenithAngle = (x % SunZenithResolution) / (SunZenithResolution - 1.0);
+        // paper formula
+        //sunZenithAngle = -(0.6 + log(1.0 - sunZenithAngle * (1.0 -  exp(-3.6)))) / 3.0;
+        // better formula
+        sunZenithAngle = tan((2.0 * sunZenithAngle - 1.0 + 0.26) * 1.1) / tan(1.26 * 1.1);
+        viewSunAngle = -1.0 + floor(x / SunZenithResolution) / (ViewSunResolution - 1.0) * 2.0;
+    #else
+        viewZenithAngle = -1.0 + 2.0 * y / (ViewZenithResolution - 1.0);
+        sunZenithAngle = (x % SunZenithResolution) / (SunZenithResolution - 1.0);
+        sunZenithAngle = -0.2 + sunZenithAngle * 1.2;
+        viewSunAngle = -1.0 + floor(x / SunZenithResolution) / (ViewSunResolution - 1.0) * 2.0;
+    #endif
+    }
+
+    float GetViewZenith(float altitude)
+    {
+        float relativeAltitude = GroundHeight / altitude;
+        return sqrt(1.0 - relativeAltitude * relativeAltitude);
+    }
+
+    float CosineLaw(float c, float a, float b)
+    {
+        return (c * c - a * a - b * b) / (2 * a * b);
+    }
+};

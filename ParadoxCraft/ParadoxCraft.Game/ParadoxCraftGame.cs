@@ -17,6 +17,9 @@ using System.Threading.Tasks;
 using SiliconStudio.Paradox.DataModel;
 using ParadoxCraft.Blocks.Chunks;
 using ParadoxCraft.Helpers;
+using SiliconStudio.Paradox.Effects.ShadowMaps;
+using SiliconStudio.Paradox.Effects.Renderers;
+using SiliconStudio.Paradox.Effects.Processors;
 
 namespace ParadoxCraft
 {
@@ -32,19 +35,9 @@ namespace ParadoxCraft
         private bool isWireframe = false;
 
         /// <summary>
-        /// Bool to switch to deferred mode
-        /// </summary>
-        private bool isDeferred = false;
-
-        /// <summary>
         /// Player camera entity
         /// </summary>
         private Entity Camera { get; set; }
-
-        /// <summary>
-        /// Sun light and global light container
-        /// </summary>
-        private List<Entity> DirectionalLights { get; set; }
 
         /// <summary>
         /// Terrain entity
@@ -65,6 +58,26 @@ namespace ParadoxCraft
         /// The player its cursor
         /// </summary>
         public PrimitiveRender Cursor { get; set; }
+
+        /// <summary>
+        /// Component for the sunlight
+        /// </summary>
+        private LightComponent Sunlight { get; set; }
+
+        /// <summary>
+        /// Component#1 for the background lighting
+        /// </summary>
+        private LightComponent EnviromentLight1 { get; set; }
+
+        /// <summary>
+        /// Component#2 for the background lighting
+        /// </summary>
+        private LightComponent EnviromentLight2 { get; set; }
+
+        /// <summary>
+        /// Atmosphere handler for the sunlight
+        /// </summary>
+        private AtmosphereData Atmosphere { get; set; }
         #endregion
 
         #region Initialization
@@ -75,8 +88,6 @@ namespace ParadoxCraft
         {
             // Target 11.0 profile by default
             GraphicsDeviceManager.PreferredGraphicsProfile = new[] { GraphicsProfile.Level_11_0 };
-
-            DirectionalLights = new List<Entity>();
             Factory = new ChunkFactory();
         }
 
@@ -87,35 +98,20 @@ namespace ParadoxCraft
         {
             await base.LoadContent();
 
+            // Hides the mouse
             IsMouseVisible = false;
 
-            // Initialize the cursor
-            float res = (float)Window.ClientBounds.Width / Window.ClientBounds.Height;
-            Cursor = new PrimitiveRender
-            {
-                DrawEffect = new SimpleEffect(GraphicsDevice) { Color = Color.White },
-                Primitives = new[] {
-                    GeometricPrimitive.Plane.New(GraphicsDevice, .06f / res, .01f),
-                    GeometricPrimitive.Plane.New(GraphicsDevice, .01f / res, .06f)
-                }
-            };
-
-            // Create pipeline
-            if (isDeferred)
-                RenderPipelineLightingFactory.CreateDefaultDeferred(this, "ParadoxCraftEffectMain", "ParadoxCraftPrepassEffect", Color.DarkBlue, false, false);
-            else
-                RenderPipelineLightingFactory.CreateDefaultForward(this, "ParadoxCraftEffectForward", Color.DarkBlue, false, false);
-            RenderSystem.Pipeline.Renderers.Add(new DelegateRenderer(Services) { Render = RenderCursor });
-
-            // Wireframe mode
-            if (isWireframe)
-                GraphicsDevice.Parameters.Set(Effect.RasterizerStateKey, RasterizerState.New(GraphicsDevice, new RasterizerStateDescription(CullMode.None) { FillMode = FillMode.Wireframe }));
+            // Create the Atmosphere lighting
+            Atmosphere = AtmosphereBuilder.Generate(GraphicsDevice, EffectSystem);
+            CreateSunLight();
 
             // Lights
-            DirectionalLights.Add(CreateDirectLight(Vector3.Zero, new Color3(0), .5f));
-            DirectionalLights.Add(CreateDirectLight(new Vector3(-1, -1, -1), new Color3(1, 1, 1), .2f));
-            DirectionalLights.Add(CreateDirectLight(new Vector3(1, 1, 1), new Color3(1, 1, 1), .2f));
-            Entities.Add(DirectionalLights.ToArray());
+            EnviromentLight1 = CreateDirectLight(new Vector3(-1, -1, -1), new Color3(1, 1, 1), .3f);
+            EnviromentLight2 = CreateDirectLight(new Vector3(1, 1, 1), new Color3(1, 1, 1), .3f);
+
+            // Create the pipeline
+            CreatePipeline();
+            CreateCursor();
 
             // Entities
             LoadTerrain();
@@ -126,6 +122,68 @@ namespace ParadoxCraft
             Script.Add(RenderChunksScript);
             Script.Add(BuildTerrain);
             Script.Add(LightCycleScript);
+        }
+
+        /// <summary>
+        /// Creates the rendering pipeline
+        /// </summary>
+        private void CreatePipeline()
+        {
+            var renderers = RenderSystem.Pipeline.Renderers;
+            var width = GraphicsDevice.BackBuffer.Width;
+            var height = GraphicsDevice.BackBuffer.Height;
+            var viewport = new Viewport(0, 0, width, height);
+            var clearColor = Color.Black;
+            var effectName = "ParadoxCraftEffectMain";
+            var fowardEffectName = "ParadoxCraftEffectForward";
+            var prepassEffectName = "ParadoxCraftPrepassEffect";
+
+            // Adds a light processor that will track all the entities that have a light component.
+            // This will also handle the shadows (allocation, activation etc.).
+            var lightProcessor = Entities.GetProcessor<LightShadowProcessor>();
+            if (lightProcessor == null)
+                Entities.Processors.Add(new DynamicLightShadowProcessor(GraphicsDevice, false));
+
+            // Camera 
+            renderers.Add(new CameraSetter(Services));
+
+            // Create G-buffer pass
+            var gbufferPipeline = new RenderPipeline("GBuffer");
+
+            // Renders the G-buffer for opaque geometry.
+            gbufferPipeline.Renderers.Add(new ModelRenderer(Services, effectName + ".ParadoxGBufferShaderPass").AddOpaqueFilter());
+            var gbufferProcessor = new GBufferRenderProcessor(Services, gbufferPipeline, GraphicsDevice.DepthStencilBuffer, false);
+
+            // Add sthe G-buffer pass to the pipeline.
+            renderers.Add(gbufferProcessor);
+
+            // Performs the light prepass on opaque geometry.
+            // Adds this pass to the pipeline.
+            var lightDeferredProcessor = new LightingPrepassRenderer(Services, prepassEffectName, GraphicsDevice.DepthStencilBuffer, gbufferProcessor.GBufferTexture);
+            renderers.Add(lightDeferredProcessor);
+
+            renderers.Add(new RenderTargetSetter(Services)
+            {
+                ClearColor = clearColor,
+                EnableClearDepth = false,
+                RenderTarget = GraphicsDevice.BackBuffer,
+                DepthStencil = GraphicsDevice.DepthStencilBuffer,
+                Viewport = viewport
+            });
+
+            renderers.Add(new RenderStateSetter(Services) { DepthStencilState = GraphicsDevice.DepthStencilStates.Default, RasterizerState = GraphicsDevice.RasterizerStates.CullBack });
+
+            // Renders all the meshes with the correct lighting.
+            renderers.Add(new ModelRenderer(Services, fowardEffectName).AddLightForwardSupport());
+
+            // Blend atmoshpere inscatter on top
+            renderers.Add(new AtmosphereRenderer(Services, Atmosphere, Sunlight));
+
+            // Wireframe mode
+            if (isWireframe)
+                GraphicsDevice.Parameters.Set(Effect.RasterizerStateKey, RasterizerState.New(GraphicsDevice, new RasterizerStateDescription(CullMode.None) { FillMode = FillMode.Wireframe }));
+
+            GraphicsDevice.Parameters.Set(RenderingParameters.UseDeferred, true);
         }
 
         /// <summary>
@@ -157,6 +215,26 @@ namespace ParadoxCraft
             Entities.Add(Terrain);
         }
 
+        private void CreateCursor()
+        {
+            // Initialize the cursor
+            float res = (float)Window.ClientBounds.Width / Window.ClientBounds.Height;
+            Cursor = new PrimitiveRender
+            {
+                DrawEffect = new SimpleEffect(GraphicsDevice) { Color = Color.White },
+                Primitives = new[] {
+                    GeometricPrimitive.Plane.New(GraphicsDevice, .06f / res, .01f),
+                    GeometricPrimitive.Plane.New(GraphicsDevice, .01f / res, .06f)
+                }
+            };
+
+            // Cursor render
+            RenderSystem.Pipeline.Renderers.Add(new DelegateRenderer(Services) { Render = RenderCursor });
+        }
+
+        /// <summary>
+        /// Renders the cursor
+        /// </summary>
         private void RenderCursor(RenderContext renderContext)
         {
             Cursor.DrawEffect.Apply();
@@ -289,54 +367,48 @@ namespace ParadoxCraft
                 await Task.Delay(100);
             }
         }
-        float realAngle;
+
         /// <summary>
         /// Script for the "Day/Night Cycle" 
         /// </summary>
         private async Task LightCycleScript()
         {
-            LightComponent
-                light1 = DirectionalLights[1].Get<LightComponent>(),
-                light2 = DirectionalLights[2].Get<LightComponent>(),
-                sunlight = DirectionalLights[0].Get<LightComponent>();
             float
-                sunlightIntensity = sunlight.Intensity,
-                lightIntensity = light1.Intensity,
-                intensityPercentage = 1f;
+                sunlightIntensity = Sunlight.Intensity,
+                lightIntensity = EnviromentLight1.Intensity,
+                sunZenith = MathUtil.RevolutionsToRadians(0.2f),
+                intensityPercentage = 1f,
+                realAngle;
             double time;
             while (IsRunning)
             {
-                await Task.Delay(100);
+                await Task.Delay(500);
                 time = UpdateTime.Total.TotalSeconds;
                 float curAngle = (float)time / (Constants.DayNightCycle / 360f);
                 float angle = curAngle / Constants.Degrees90 / 90;
                 angle %= Constants.Degrees90 * 4;
 
-                if (angle < 0 || angle > Constants.Degrees90 * 2)
+                if (angle > 0 && angle < Constants.Degrees90 * 2)
                 {
-                    //Night
-                    sunlight.Intensity = 0;
-                }
-                else
-                {
+                    //Day
+
                     realAngle = angle * (180 / (float)Math.PI);
                     if (realAngle < 20)
                         intensityPercentage = realAngle * .05f;
                     if (realAngle > 160)
                         intensityPercentage = (180 - realAngle) * .05f;
 
-                    //Day
-                    sunlight.Intensity = sunlightIntensity * intensityPercentage;
-                    light1.Intensity = lightIntensity + (.1f * intensityPercentage);
-                    light2.Intensity = lightIntensity + (.1f * intensityPercentage);
+                    Sunlight.Intensity = sunlightIntensity + (.1f * intensityPercentage);
+                    EnviromentLight1.Intensity = lightIntensity + (.1f * intensityPercentage);
+                    EnviromentLight2.Intensity = lightIntensity + (.1f * intensityPercentage);
+
                     float height = (float)Math.Sin(angle);
                     float width = (float)Math.Cos(angle);
-
-                    sunlight.LightDirection = new Vector3(-width, -height, .8f);
-                    if (height < 0)
-                        height *= -1;
-                    sunlight.Color = new Color3(1f, .4f + (.6f * height), .2f + height * .8f);
+                    Sunlight.Color = new Color3(1f, .4f + (.6f * height), .2f + height * .8f);
                 }
+
+                sunZenith = MathUtil.Mod2PI(angle - Constants.Degrees90);
+                Sunlight.LightDirection = new Vector3((float)Math.Sin(sunZenith), -(float)Math.Cos(sunZenith), 0);
             }
         }
         #endregion
@@ -348,31 +420,38 @@ namespace ParadoxCraft
         /// <param name="direction">Light direction</param>
         /// <param name="color">Light color</param>
         /// <param name="intensity">Light intensity</param>
-        /// <returns>The light entity</returns>
-        private Entity CreateDirectLight(Vector3 direction, Color3 color, float intensity)
+        private LightComponent CreateDirectLight(Vector3 direction, Color3 color, float intensity)
         {
-            return new Entity()
+            var directLightEntity = new Entity();
+            LightComponent directLightComponent = new LightComponent
             {
-                new LightComponent
-                {
-                    Type = LightType.Directional,
-                    Color = color,
-                    Deferred = isDeferred,
-                    Enabled = true,
-                    Intensity = intensity,
-                    LightDirection = direction,
-                    Layers = RenderLayers.RenderLayerAll,
-                    ShadowMap = false,
-                    ShadowFarDistance = 3000,
-                    ShadowNearDistance = 1,
-                    ShadowMapMaxSize = 512,
-                    ShadowMapMinSize = 256,
-                    ShadowMapCascadeCount = 4,
-                    ShadowMapFilterType = ShadowMapFilterType.Variance,
-                    BleedingFactor = 0,
-                    MinVariance = 0
-                }
+                Type = LightType.Directional,
+                Color = color,
+                Deferred = false,
+                Enabled = true,
+                Intensity = intensity,
+                LightDirection = direction
             };
+            directLightEntity.Add(directLightComponent);
+            Entities.Add(directLightEntity);
+            return directLightComponent;
+        }
+
+        private void CreateSunLight()
+        {
+            // create the lights
+            var directLightEntity = new Entity();
+            Sunlight = new LightComponent
+            {
+                Type = LightType.Directional,
+                Color = new Color3(1, 1, 1),
+                Deferred = false,
+                Enabled = true,
+                Intensity = .2f,
+                LightDirection = new Vector3(0)
+            };
+            directLightEntity.Add(Sunlight);
+            Entities.Add(directLightEntity);
         }
         #endregion
     }

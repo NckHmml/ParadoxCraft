@@ -1,0 +1,10 @@
+﻿class CopySlice : ImageShaderBase, Texturing
+{
+    Texture3D Source;
+    float Slice;
+
+    override stage void PSMain()
+    {
+        streams.ColorTarget = Source.Sample(PointSampler, float3(streams.TexCoord, Slice));
+    }
+};

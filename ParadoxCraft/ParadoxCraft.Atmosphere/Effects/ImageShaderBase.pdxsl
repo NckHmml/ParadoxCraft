@@ -1,0 +1,10 @@
+﻿class ImageShaderBase : ShaderBase, Texturing
+{
+    stage stream uint VertexID : SV_VertexID;
+
+    override stage void VSMain()
+    {
+        streams.TexCoord = float2((streams.VertexID << 1) & 2, streams.VertexID & 2);
+        streams.ShadingPosition = float4(streams.TexCoord * float2(2, -2) + float2(-1, 1), 0, 1);
+    }
+};

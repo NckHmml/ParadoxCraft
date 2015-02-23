@@ -114,6 +114,12 @@
       <LastGenOutput>VertexTextureTerrain.cs</LastGenOutput>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ParadoxCraft.Atmosphere\ParadoxCraft.Atmosphere.csproj">
+      <Project>{bb2b365e-d4ef-424b-8197-d542aeb98e34}</Project>
+      <Name>ParadoxCraft.Atmosphere</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <Import Project="$(SiliconStudioPackageProps)" Condition="Exists('$(SiliconStudioPackageProps)')" />
   <Import Project="$(SiliconStudioParadoxDir)\Targets\SiliconStudio.Common.targets" Condition="Exists('$(SiliconStudioParadoxDir)\Targets\SiliconStudio.Common.targets')" />

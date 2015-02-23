@@ -1,0 +1,191 @@
+﻿class AtmosphereLighting : PositionVSGBuffer, ImageShaderBase, ShaderBase, /*SpecularPowerBase, */PositionVSBase, /*NormalVSBase, */Atmosphere
+{
+    static const float EPSILON_ATMOSPHERE = 0.002e3f;
+    static const float EPSILON_INSCATTER = 0.004f;// * 1.5f;
+
+    float SunIntensity = 100;
+    float Exposure = 0.4f;
+    float3 SunDirectionVS;
+    float3 CenterVS; // -ViewSpaceEyePosition
+
+    override stage void PSMain()
+    {
+        //this.GenerateNormalVS_PS();
+        float3 positionVS = this.PositionVS();
+        float3 eyeVS = -normalize(positionVS);
+        //float3 normalVS = this.NormalVS();
+        //float specularPower = this.SpecularPowerValue();
+
+        float3 position = positionVS - CenterVS;
+        //float3 shadowFactor = ComputeShadowFactor(lightIndex);
+        float depth = this.GetZProjDepthFromScreenPosition(int2(streams.ShadingPosition.xy));
+
+        float3 attenuation;
+        float irradianceFactor;
+
+        float3 inscatter = ComputeInscatteredLight(position, -eyeVS, SunDirectionVS, attenuation, irradianceFactor, depth == 1);
+
+        streams.ColorTarget = float4(HDR(inscatter), 1);
+    }
+
+
+    float3 ComputeInscatteredLight(float3 position, float3 viewDirection, float3 sunDirection, out float3 attenuation, out float irradianceFactor, bool isBackground)
+    {
+        irradianceFactor = 0;
+        attenuation = 1;
+
+        float3 inscatteredLight = 0;
+
+        float offset;
+        float maxPathLength;
+
+        if (IntersectsAtmosphere(viewDirection, offset, maxPathLength))
+        {
+            float pathLength = isBackground ? maxPathLength + offset : distance(-CenterVS, position);
+
+            // check if object occludes atmosphere 
+            if (pathLength > offset)
+            {
+                // offsetting camera 
+                float3 startPos = -CenterVS + offset * viewDirection;
+                float startPosHeight = length(startPos);
+
+                // starting position of path is now ensured to be inside atmosphere 
+                // was either originally there or has been moved to top boundary
+                float muStartPos = dot(startPos, viewDirection) / startPosHeight;
+                float nuStartPos = dot(viewDirection, sunDirection);
+                float musStartPos = dot(startPos, sunDirection) / startPosHeight;
+
+                // in-scattering for infinite ray (light in-scattered when 
+                // no surface hit or object behind atmosphere) 
+                float4 inscatter = GetInscatter(startPosHeight, muStartPos, musStartPos, nuStartPos);
+
+                float surfacePosHeight = length(position);
+                float musEndPos = dot(position, sunDirection) / surfacePosHeight;
+
+                // retrieve extinction factor for inifinte ray 
+                // fíx described in chapter 5.1.1
+                attenuation = GetAnalyticTransmittance(startPosHeight, muStartPos, pathLength);
+
+                // check if object hit is inside atmosphere 
+                if (pathLength < maxPathLength &&
+                    surfacePosHeight > GroundHeight + pathLength * 0.01) // Reduce artifacts at ground height
+                {
+                    //attenuation = GetTransmittance(startPosHeight, muStartPos, pathLength);
+
+                    // reduce total in-scattered light when surface hit within atmosphere 
+                    // fíx described in chapter 5.1.1 
+                    float muEndPos = dot(position, viewDirection) / surfacePosHeight;
+                    float4 inscatterSurface = GetInscatter(surfacePosHeight, muEndPos, musEndPos, nuStartPos);
+                    inscatter = max(inscatter - attenuation.rgbr * inscatterSurface, 0.0f);
+                    irradianceFactor = 1.0;
+                }
+                else
+                {
+                    //attenuation = GetTransmittance(startPosHeight, muStartPos);
+                }
+
+                // avoids imprecision problems near horizon by interpolating between two points above and below horizon 
+                // fíx described in chapter 5.1.2 
+                float muHorizon = -sqrt(1.0 - (GroundHeight / startPosHeight) * (GroundHeight / startPosHeight));
+
+                if (abs(muStartPos - muHorizon) < EPSILON_INSCATTER)
+                {
+                    float mu = muHorizon - EPSILON_INSCATTER;
+                    float samplePosHeight = sqrt(startPosHeight * startPosHeight + pathLength * pathLength + 2.0f * startPosHeight * pathLength * mu);
+
+                    float muSamplePos = (startPosHeight * mu + pathLength) / samplePosHeight;
+                    float4 inScatter0 = GetInscatter(startPosHeight, mu, musStartPos, nuStartPos);
+                    float4 inScatter1 = GetInscatter(samplePosHeight, muSamplePos, musEndPos, nuStartPos);
+                    float4 inScatterA = max(inScatter0 - attenuation.rgbr * inScatter1, 0.0);
+
+                    mu = muHorizon + EPSILON_INSCATTER;
+                    samplePosHeight = sqrt(startPosHeight * startPosHeight + pathLength*pathLength + 2.0f * startPosHeight*pathLength*mu);
+                    muSamplePos = (startPosHeight * mu + pathLength) / samplePosHeight;
+
+                    inScatter0 = GetInscatter(startPosHeight, mu, musStartPos, nuStartPos);
+                    inScatter1 = GetInscatter(samplePosHeight, muSamplePos, musEndPos, nuStartPos);
+                    float4 inScatterB = max(inScatter0 - attenuation.rgbr * inScatter1, 0.0f);
+                    float t = ((muStartPos - muHorizon) + EPSILON_INSCATTER) / (2.0 * EPSILON_INSCATTER);
+
+                    inscatter = lerp(inScatterA, inScatterB, t);
+                }
+
+                // avoids imprecision problems in Mie scattering when sun is below  horizon 
+                // fíx described in chapter 5.1.3 
+                inscatter.w *= smoothstep(0.00, 0.02, musStartPos);
+                float phaseR = RayleighPhaseFunction(nuStartPos);
+                float phaseM = MiePhaseFunction(nuStartPos);
+                inscatteredLight = max(inscatter.rgb * phaseR + GetMie(inscatter) *  phaseM, 0.0f);
+                inscatteredLight *= SunIntensity;
+            }
+        }
+
+        return inscatteredLight;
+    }
+
+    bool IntersectsAtmosphere(float3 viewDirection, out float offset, out float maxPathLength)
+    {
+        offset = 0.0;
+        maxPathLength = 0.0;
+
+        // vector from ray origin to center of the sphere 
+        float3 down = CenterVS;
+        float downSquared = dot(down, down);
+        float s = dot(down, viewDirection);
+
+        // adjust top atmosphere boundary by small epsilon to prevent artifacts 
+        float top = TopHeight - EPSILON_ATMOSPHERE;
+        float topSquared = top * top;
+
+        if (downSquared <= topSquared)
+        {
+            // Ray origin inside sphere. Hit is ensured 
+            float m2 = downSquared - (s * s);
+            float q = sqrt(topSquared - m2);
+            maxPathLength = s + q;
+
+            return true;
+        }
+        else if (s >= 0)
+        {
+            // ray starts outside in front of sphere, hit is possible 
+            float m2 = downSquared - (s * s);
+
+            if (m2 <= topSquared)
+            {
+                // ray definitely hits atmosphere
+                float q = sqrt(topSquared - m2);
+                offset = s - q;
+                maxPathLength = (s + q) - offset;
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    float3 T(float3 x)
+    {
+        float A = 0.22; // Shoulder strength
+        float B = 0.30; // Linear Strength
+        float C = 0.10; // Linear Angle
+        float D = 0.20; // Toe Strength
+        float E = 0.01; // Toe Numerator // 0.2
+        float F = 0.30; // Toe Denominator, E/F = Toe Angle
+        return ((x*(A*x + C*B) + D*E) / (x*(A*x + B) + D*F)) - E / F;
+    }
+
+    float3 HDR(float3 color)
+    {
+        /*color = color * Exposure;
+        color.r = color.r < 1.413 ? pow(color.r * 0.38317, 1.0 / 2.2) : 1.0 - exp(-color.r);
+        color.g = color.g < 1.413 ? pow(color.g * 0.38317, 1.0 / 2.2) : 1.0 - exp(-color.g);
+        color.b = color.b < 1.413 ? pow(color.b * 0.38317, 1.0 / 2.2) : 1.0 - exp(-color.b);
+        return color;*/
+
+        //return 1.0 - exp(-Exposure * color);
+        return T(color) / T(11.2);
+    }
+};

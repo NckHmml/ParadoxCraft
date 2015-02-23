@@ -1,0 +1,56 @@
+﻿#define TRANSMITTANCE_NON_LINEAR
+#define TRANSMITTANCE_INTEGRAL_SAMPLES 500
+
+class ComputeTransmittance : ImageShaderBase, AtmospherePrecomputation
+{
+    override stage void PSMain()
+    {
+        float altitude, sunZenith;
+        GetTransmittanceParams(streams.TexCoord, altitude, sunZenith);
+
+        float3 extinction =
+            RayleighExtinction * OpticalDepth(RayleighScaleHeight, altitude, sunZenith) +
+            MieExtinction * OpticalDepth(MieScaleHeight, altitude, sunZenith);
+
+        streams.ColorTarget = float4(exp(-extinction), 1.0);
+    }
+    
+    void GetTransmittanceParams(float2 texCoord, out float altitude, out float sunZenith)
+    {
+        altitude = texCoord.y;
+        sunZenith = texCoord.x;
+
+    #ifdef TRANSMITTANCE_NON_LINEAR
+        altitude = GroundHeight + (altitude * altitude) * (TopHeight - GroundHeight);
+        sunZenith = -0.15 + tan(1.5 * sunZenith) / tan(1.5) * (1.0 + 0.15);
+    #else
+        altitude = GroundHeight + altitude * (TopHeight - GroundHeight);
+        sunZenith = -0.15 + sunZenith * (1.0 + 0.15);
+    #endif
+    }
+    
+    float OpticalDepth(float scaleHeight, float altitude, float viewZenith)
+    {
+        // if ray below horizon return max density 
+        float altitudeSquared = altitude * altitude;
+        float cosHorizon = -sqrt(1.0 - ((GroundHeight * GroundHeight) / altitudeSquared));
+        if (viewZenith < cosHorizon)
+            return 1e9;
+
+        float totalDensity = 0.0;
+        float dx = IntersectAtmosphere(altitude, viewZenith) / TRANSMITTANCE_INTEGRAL_SAMPLES;
+
+        float yBase = exp(-(altitude - GroundHeight) / scaleHeight);
+
+        for (int i = 1; i <= TRANSMITTANCE_INTEGRAL_SAMPLES; i++)
+        {
+            float x = dx * i;
+            float sampleAltitude = sqrt(altitudeSquared + x * (x + 2.0 * altitude * viewZenith));
+            float y = exp(-(sampleAltitude - GroundHeight) / scaleHeight);
+            totalDensity += (yBase + y) / 2.0 * dx;
+            yBase = y;
+        }
+
+        return totalDensity;
+    }
+};

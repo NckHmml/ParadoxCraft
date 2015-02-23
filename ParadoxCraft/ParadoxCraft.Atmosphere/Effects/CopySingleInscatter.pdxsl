@@ -1,0 +1,11 @@
+﻿class CopySingleInscatter : InscatterBase
+{
+    override float4 Compute(float altitude, float viewZenith, float sunZenith, float viewSun)
+    {
+        float3 texCoord = float3(streams.TexCoord, streams.TexCoordZ);
+        float3 rayleigh = DeltaSR.SampleLevel(PointSampler, texCoord, 0);
+        float3 mie = DeltaSM.SampleLevel(PointSampler, texCoord, 0);
+
+        return streams.ColorTarget = float4(rayleigh, mie.r);
+    }
+};

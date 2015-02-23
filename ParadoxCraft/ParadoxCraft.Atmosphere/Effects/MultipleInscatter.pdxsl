@@ -1,0 +1,32 @@
+﻿#define INSCATTER_INTEGRAL_SAMPLES 50
+
+class MultipleInscatter : InscatterBase
+{
+    override float4 Compute(float altitude, float viewZenithAngle, float sunZenithAngle, float viewSunAngle)
+    {
+        float3 raymie = 0;
+        float dx = IntersectAtmosphere(altitude, viewZenithAngle) / INSCATTER_INTEGRAL_SAMPLES;
+
+        float x_i = 0.0;
+        float3 raymie_i = Integrand(altitude, viewZenithAngle, sunZenithAngle, viewSunAngle, 0.0);
+        for (int i = 1; i <= INSCATTER_INTEGRAL_SAMPLES; ++i)
+        {
+            float x_j = dx * i;
+            float3 raymie_j = Integrand(altitude, viewZenithAngle, sunZenithAngle, viewSunAngle, x_j);
+            raymie += (raymie_i + raymie_j) / 2.0 * dx;
+            x_i = x_j;
+            raymie_i = raymie_j;
+        }
+
+        return float4(raymie, 0);
+    }
+
+    float3 Integrand(float alt, float mu, float mus, float nu, float t)
+    {
+        float alt_i = sqrt(alt*alt + t*t + 2.0*alt*mu*t);
+        float mu_i = (alt * mu + t) / alt_i;
+        float mus_i = (nu * t + mus * alt) / alt_i;
+
+        return GetInscatter(DeltaJ, alt_i, mu_i, mus_i, nu).rgb * GetTransmittance(alt, mu, t);
+    }
+};

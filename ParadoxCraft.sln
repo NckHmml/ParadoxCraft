@@ -18,6 +18,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParadoxCraft.Atmosphere", "ParadoxCraft\ParadoxCraft.Atmosphere\ParadoxCraft.Atmosphere.csproj", "{BB2B365E-D4EF-424B-8197-D542AEB98E34}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		AppStore|Any CPU = AppStore|Any CPU
@@ -94,6 +96,26 @@ Global
 		{10242CD2-7C03-4132-A199-EAE16A0D71DC}.Testing|Mixed Platforms.Build.0 = Testing|Any CPU
 		{10242CD2-7C03-4132-A199-EAE16A0D71DC}.Testing|Windows.ActiveCfg = Testing|Any CPU
 		{10242CD2-7C03-4132-A199-EAE16A0D71DC}.Testing|Windows.Build.0 = Testing|Any CPU
+		{BB2B365E-D4EF-424B-8197-D542AEB98E34}.AppStore|Any CPU.ActiveCfg = Release|Any CPU
+		{BB2B365E-D4EF-424B-8197-D542AEB98E34}.AppStore|Any CPU.Build.0 = Release|Any CPU
+		{BB2B365E-D4EF-424B-8197-D542AEB98E34}.AppStore|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{BB2B365E-D4EF-424B-8197-D542AEB98E34}.AppStore|Mixed Platforms.Build.0 = Release|Any CPU
+		{BB2B365E-D4EF-424B-8197-D542AEB98E34}.AppStore|Windows.ActiveCfg = Release|Any CPU
+		{BB2B365E-D4EF-424B-8197-D542AEB98E34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB2B365E-D4EF-424B-8197-D542AEB98E34}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB2B365E-D4EF-424B-8197-D542AEB98E34}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{BB2B365E-D4EF-424B-8197-D542AEB98E34}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{BB2B365E-D4EF-424B-8197-D542AEB98E34}.Debug|Windows.ActiveCfg = Debug|Any CPU
+		{BB2B365E-D4EF-424B-8197-D542AEB98E34}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB2B365E-D4EF-424B-8197-D542AEB98E34}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB2B365E-D4EF-424B-8197-D542AEB98E34}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{BB2B365E-D4EF-424B-8197-D542AEB98E34}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{BB2B365E-D4EF-424B-8197-D542AEB98E34}.Release|Windows.ActiveCfg = Release|Any CPU
+		{BB2B365E-D4EF-424B-8197-D542AEB98E34}.Testing|Any CPU.ActiveCfg = Release|Any CPU
+		{BB2B365E-D4EF-424B-8197-D542AEB98E34}.Testing|Any CPU.Build.0 = Release|Any CPU
+		{BB2B365E-D4EF-424B-8197-D542AEB98E34}.Testing|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{BB2B365E-D4EF-424B-8197-D542AEB98E34}.Testing|Mixed Platforms.Build.0 = Release|Any CPU
+		{BB2B365E-D4EF-424B-8197-D542AEB98E34}.Testing|Windows.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -101,5 +123,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{48012EC3-759E-45A5-A624-21860447E898} = {181F95B9-A79E-4592-8E1B-D8AE18A1FFA4}
 		{10242CD2-7C03-4132-A199-EAE16A0D71DC} = {181F95B9-A79E-4592-8E1B-D8AE18A1FFA4}
+		{BB2B365E-D4EF-424B-8197-D542AEB98E34} = {181F95B9-A79E-4592-8E1B-D8AE18A1FFA4}
 	EndGlobalSection
 EndGlobal

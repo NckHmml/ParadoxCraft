@@ -1,0 +1,180 @@
+﻿#define TRANSMITTANCE_NON_LINEAR
+#define INSCATTER_NON_LINEAR
+
+class Atmosphere : Texturing, ShaderBase
+{
+    float RayleighScaleHeight = 8.0e3f;
+    float MieScaleHeight = 1.2e3f;
+    float3 RayleighExtinction = float3(5.8e-6f, 1.35e-5f, 3.31e-5f);
+    float3 MieScattering = float3(4e-6f, 4e-6f, 4e-6f);
+    float3 MieExtinction = float3(4e-6f / 0.9f, 4e-6f / 0.9f, 4e-6f / 0.9f);//float3(4e-3f / 0.9f); //MieScattering / 0.9f;
+    float MieAnisotropy = 0.8f;
+
+    Texture2D Transmittance;
+    Texture2D Irradiance;
+    Texture3D Inscatter;
+
+    int ViewZenithResolution;
+    int SunZenithResolution;
+    int ViewSunResolution;
+    int AltitudeResolution;
+
+    float GroundHeight;
+    float TopHeight;
+    float HeightLimit;
+    
+    float2 GetTransmittanceTexCoord(float altitude, float viewZenith)
+    {
+        float2 texCoord;
+    #ifdef TRANSMITTANCE_NON_LINEAR
+        texCoord.y = sqrt((altitude - GroundHeight) / (TopHeight - GroundHeight));
+        texCoord.x = atan((viewZenith + 0.15) / (1.0 + 0.15) * tan(1.5)) / 1.5;
+    #else
+        texCoord.y = (altitude - GroundHeight) / (TopHeight - GroundHeight);
+        texCoord.x = (viewZenith + 0.15) / (1.0 + 0.15);
+    #endif
+        return texCoord;
+    }
+
+    float3 GetTransmittance(float altitude, float zenithAngle)
+    {
+        float2 texCoord = GetTransmittanceTexCoord(altitude, zenithAngle);
+        return Transmittance.Sample(LinearSampler, texCoord);
+    }
+
+    float3 GetTransmittance(float altitude, float zenithAngle, float distance)
+    {
+        float3 result;
+        float r1 = sqrt(altitude * altitude + distance * distance + 2.0 * altitude * zenithAngle * distance);
+        float mu1 = (altitude * zenithAngle + distance) / r1;
+
+        if (zenithAngle > 0.0)
+        {
+            result = min(GetTransmittance(altitude, zenithAngle) / GetTransmittance(r1, mu1), 1.0);
+        }
+        else
+        {
+            result = min(GetTransmittance(r1, -mu1) / GetTransmittance(altitude, -zenithAngle), 1.0);
+        }
+
+        return result;
+    }
+
+    float2 GetIrradianceTexCoord(float altitude, float sunZenith)
+    {
+        float2 texCoord;
+        texCoord.y = (altitude - GroundHeight) / (TopHeight - GroundHeight);
+        texCoord.x = (sunZenith + 0.2) / (1.0 + 0.2);
+        return texCoord;
+    }
+
+    float3 GetIrradiance(float altitude, float sunZenithAngle)
+    {
+        return GetIrradiance(Irradiance, altitude, sunZenithAngle);
+    }
+
+    float3 GetIrradiance(Texture2D source, float altitude, float sunZenithAngle)
+    {
+        float2 texCoord = GetIrradianceTexCoord(altitude, sunZenithAngle);
+        return source.Sample(LinearSampler, texCoord).rgb;
+    }
+
+    float4 GetInscatter(float altitude, float viewZenith, float sunZenith, float viewSun)
+    {
+        return GetInscatter(Inscatter, altitude, viewZenith, sunZenith, viewSun);
+    }
+
+    float4 GetInscatter(Texture3D source, float altitude, float viewZenith, float sunZenith, float viewSun)
+    {
+        float altitudeSquared = altitude * altitude;
+        float groundSquared = GroundHeight * GroundHeight;
+        float topSquared = TopHeight * TopHeight;
+
+        float H = sqrt(topSquared - groundSquared);
+        float rho = sqrt(altitudeSquared - groundSquared);
+    #ifdef INSCATTER_NON_LINEAR
+        float rmu = altitude * viewZenith;
+        float delta = rmu * rmu - altitudeSquared + groundSquared;
+        float4 cst = rmu < 0.0 && delta > 0.0 ? float4(1.0, 0.0, 0.0, 0.5 - 0.5 / ViewZenithResolution) : float4(-1.0, H * H, H, 0.5 + 0.5 / ViewZenithResolution);
+        float uR = 0.5 / AltitudeResolution + rho / H * (1.0 - 1.0 / AltitudeResolution);
+        float uMu = cst.w + (rmu * cst.x + sqrt(delta + cst.y)) / (rho + cst.z) * (0.5 - 1.0 / ViewZenithResolution);
+        // paper formula
+        //float uMuS = 0.5 / float(RES_MU_S) + max((1.0 - exp(-3.0 * muS - 0.6)) / (1.0 - exp(-3.6)), 0.0) * (1.0 - 1.0 / float(RES_MU_S));
+        // better formula
+        float uMuS = 0.5 / SunZenithResolution + (atan(max(sunZenith, -0.1975) * tan(1.26 * 1.1)) / 1.1 + (1.0 - 0.26)) * 0.5 * (1.0 - 1.0 / SunZenithResolution);
+    #else
+        float uR = 0.5 / AltitudeResolution + rho / H * (1.0 - 1.0 / AltitudeResolution);
+        float uMu = 0.5 / ViewZenithResolution + (viewZenith + 1.0) / 2.0 * (1.0 - 1.0 / ViewZenithResolution);
+        float uMuS = 0.5 / SunZenithResolution + max(sunZenith + 0.2, 0.0) / 1.2 * (1.0 - 1.0 / SunZenithResolution);
+    #endif
+        float lerp = (viewSun + 1.0) / 2.0 * (ViewSunResolution - 1.0);
+        float uNu = floor(lerp);
+        lerp = lerp - uNu;
+
+        return
+            source.Sample(LinearSampler, float3((uNu + uMuS) / ViewSunResolution, uMu, uR)) * (1.0 - lerp) +
+            source.Sample(LinearSampler, float3((uNu + uMuS + 1.0) / ViewSunResolution, uMu, uR)) * lerp;
+    }
+
+    float EncodeViewZenith(float value)
+    {
+        return 0;
+    }
+
+    float DecodeViewZenith(float value)
+    {
+        return 0;
+    }
+
+    float2 Pack2D(float2 texCoord, uint sliceCount, uint sliceSize)
+    {
+        return 0;// float4(texCoord.);
+    }
+
+    float2 Unpack2D(float texCoord, uint sliceCount, uint sliceSize)
+    {
+        float slice = floor(texCoord * sliceCount);
+        float x = (slice + 0.5) / sliceCount;
+        //float y = (frac(texCoord * sliceCount)..);
+        return 0;// float2();
+    }
+
+    float RayleighPhaseFunction(float mu)
+    {
+        return (3.0 / (16.0 * Utilities.PI)) * (1.0 + mu * mu);
+    }
+
+    float MiePhaseFunction(float mu)
+    {
+        return 1.5 * 1.0 / (4.0 * Utilities.PI) * (1.0 - MieAnisotropy * MieAnisotropy) * pow(1.0 + (MieAnisotropy * MieAnisotropy) - 2.0 * MieAnisotropy * mu, -3.0 / 2.0) * (1.0 + mu * mu) / (2.0 + MieAnisotropy * MieAnisotropy);
+    }
+
+    float3 GetMie(float4 rayMie)
+    {
+        return rayMie.rgb * rayMie.w / max(rayMie.r, 1e-4) * (RayleighExtinction.r / RayleighExtinction);
+    }
+
+    // optical depth for ray (r,mu) of length d, using analytic formula
+    // (mu=cos(view zenith angle)), intersections with ground ignored
+    // H=height scale of exponential density function
+    float OpticalDepth(float H, float r, float mu, float d)
+    {
+        float a = sqrt((0.5/H)*r);
+        float2 a01 = a*float2(mu, mu + d / r);
+        float2 a01s = sign(a01);
+        float2 a01sq = a01*a01;
+        float x = a01s.y > a01s.x ? exp(a01sq.x) : 0.0;
+        float2 y = a01s / (2.3193*abs(a01) + sqrt(1.52*a01sq + 4.0)) * float2(1.0, exp(-d/H*(d/(2.0*r)+mu)));
+        return sqrt((6.2831*H)*r) * exp((GroundHeight-r)/H) * (x + dot(y, float2(1.0, -1.0)));
+    }
+
+    // transmittance(=transparency) of atmosphere for ray (r,mu) of length d
+    // (mu=cos(view zenith angle)), intersections with ground ignored
+    // uses analytic formula instead of transmittance texture
+    float3 GetAnalyticTransmittance(float r, float mu, float d)
+    {
+        return exp(-(
+            RayleighExtinction * OpticalDepth(RayleighScaleHeight, r, mu, d) +
+            MieExtinction * OpticalDepth(MieScaleHeight, r, mu, d)));
+    }
+};

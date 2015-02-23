@@ -20,12 +20,17 @@ Profiles:
                 RawImports: []
             -   Path: ParadoxCraft.Game/Effects
                 RawImports: []
+            -   Path: ParadoxCraft.Atmosphere/Effects
+                RawImports: []
         OutputGroupDirectories: {}
         Properties:
             Paradox.DisplayOrientation: !DisplayOrientation LandscapeRight
         ProjectReferences:
             -   Id: 10242cd2-7c03-4132-a199-eae16a0d71dc
                 Location: ParadoxCraft.Game/ParadoxCraft.Game.csproj
+                Type: Library
+            -   Id: 813702f0-416d-4f45-91a9-bbcdbf6bea21
+                Location: ParadoxCraft.Atmosphere/ParadoxCraft.Atmosphere.csproj
                 Type: Library
     -   Name: Windows
         Platform: Windows

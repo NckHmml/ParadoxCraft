@@ -1,0 +1,44 @@
+﻿#define IRRADIANCE_INTEGRAL_SAMPLES 32
+
+class MultipleIrradiance : IrradianceBase
+{
+    static const float dphi2 = Utilities.PI / IRRADIANCE_INTEGRAL_SAMPLES;
+    static const float dtheta2 = Utilities.PI / IRRADIANCE_INTEGRAL_SAMPLES;
+
+    override float3 Compute(float altitude, float sunZenithAngle)
+    {
+        float3 s = float3(max(sqrt(1.0 - sunZenithAngle * sunZenithAngle), 0), 0.0, sunZenithAngle);
+
+        float3 result = 0;
+
+        // integral over 2.Pi around current position with two nested loops 
+        // over w directions (theta,phi) 
+        for (int iphi = 0; iphi < 2 * IRRADIANCE_INTEGRAL_SAMPLES; iphi++)
+        {
+            float phi = (0.5 + iphi) * dphi2;
+            for (int itheta = 0; itheta < IRRADIANCE_INTEGRAL_SAMPLES / 2; itheta++)
+            {
+                float theta = (0.5 + itheta) * dtheta2;
+                float3 w = float3(cos(phi) * sin(theta), sin(phi) * sin(theta), cos(theta));
+                float sunViewAngle = dot(s, w);
+                float dw = dtheta2 * dphi2 * sin(theta);
+
+                if (IsFirst)
+                {
+                    // first iteration => introduce phase functions 
+                    float pr1 = RayleighPhaseFunction(sunViewAngle);
+                    float pm1 = MiePhaseFunction(sunViewAngle);
+                    float3 ray1 = GetInscatter(DeltaSR, altitude, w.z, sunZenithAngle, sunViewAngle).rgb;
+                    float3 mie1 = GetInscatter(DeltaSM, altitude, w.z, sunZenithAngle, sunViewAngle).rgb;
+                    result += (ray1 * pr1 + mie1 * pm1) * w.z * dw;
+                }
+                else
+                {
+                    result += GetInscatter(DeltaSR, altitude, w.z, sunZenithAngle, sunViewAngle).rgb * w.z * dw;
+                }
+            }
+        }
+
+        return result;
+    }
+};
